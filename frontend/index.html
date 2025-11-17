@@ -9,12 +9,30 @@
     <button id="get-recipe-btn" class="btn btn-primary btn-lg mt-3">
         Encontrar Receita!
     </button>
+
+    <!-- Texto explicativo e formulário de busca por ingrediente -->
+    <div class="mt-5">
+        <p class="lead">Quer afinar o resultado? Escreva um ingrediente e sorteamos apenas receitas que o tenham.</p>
+        <form id="search-form" class="mt-3">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" id="ingredient-input" class="form-control" placeholder="Ex: queijo, frango, chocolate..." pattern="[A-Za-zÀ-ú\s-]+" title="Por favor, use apenas letras, espaços e hífens.">
+                        <button id="search-recipe-btn" class="btn btn-warning" type="submit">Filtrar e Sortear</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- Container para a animação Lottie do dado -->
 <div id="lottie-loader" class="lottie-container d-none">
     <lottie-player src="{{ url_for('static', filename='dice_6.json') }}" background="transparent" speed="1" loop autoplay />
 </div>
+
+<!-- Área para exibir mensagens (ex: nenhuma receita encontrada) -->
+<div id="message-display" class="alert alert-warning mt-4 text-center d-none" role="alert"></div>
 
 <!-- Área onde a receita será exibida -->
 <div id="recipe-display" class="row justify-content-center d-none">
@@ -76,57 +94,79 @@ function populateInstructions(steps) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const getRecipeBtn = document.getElementById('get-recipe-btn');
+/**
+ * Busca e exibe uma receita, mostrando o loader e tratando os erros.
+ * @param {string} apiUrl - A URL da API para buscar a receita.
+ * @param {HTMLButtonElement} triggerButton - O botão que iniciou a ação.
+ */
+async function fetchAndDisplayRecipe(apiUrl, triggerButton) {
+    const originalButtonText = triggerButton.textContent;
     const recipeDisplay = document.getElementById('recipe-display');
     const lottieLoader = document.getElementById('lottie-loader');
+    const messageDisplay = document.getElementById('message-display');
 
-    getRecipeBtn.addEventListener('click', async () => {
-        // Mostra a animação do dado e desativa o botão
-        recipeDisplay.classList.add('d-none'); // Esconde a receita anterior
-        lottieLoader.classList.remove('d-none');
-        getRecipeBtn.disabled = true;
-        getRecipeBtn.textContent = 'A sortear...';
+    // Esconde resultados anteriores e mostra a animação
+    recipeDisplay.classList.add('d-none');
+    messageDisplay.classList.add('d-none');
+    lottieLoader.classList.remove('d-none');
+    
+    // Desativa ambos os botões para prevenir múltiplos cliques
+    document.getElementById('get-recipe-btn').disabled = true;
+    document.getElementById('search-recipe-btn').disabled = true;
+    triggerButton.textContent = 'A sortear...';
 
-        try {
-            // Define um atraso mínimo de 4 segundos para a animação ser visível
-            const minimumDelay = new Promise(resolve => setTimeout(resolve, 4000));
+    try {
+        // Garante que a animação seja visível por um tempo mínimo
+        const minimumDelay = new Promise(resolve => setTimeout(resolve, 4000));
 
-            // Espera pela resposta da API e pelo atraso mínimo em simultâneo.
-            // A animação ficará visível durante pelo menos 4 segundos.
-            const [response] = await Promise.all([
-                fetch('/api/recipe/random'),
-                minimumDelay
-            ]);
+        const [response] = await Promise.all([
+            fetch(apiUrl),
+            minimumDelay
+        ]);
 
-            if (!response.ok) {
-                throw new Error('Não foi possível obter a receita.');
-            }
-            const recipe = await response.json();
+        const data = await response.json();
 
-            // Guarda o ID da receita atual
-            currentRecipeId = recipe._id.$oid;
-
-            // Preenche os dados da receita
-            document.getElementById('recipe-title').textContent = recipe.nome;
-            populateInstructions(recipe.instrucoes);
-            populateIngredients(recipe.ingredientes);
-
-            // Mostra o card da receita
+        if (!response.ok) {
+            // Se a API retornar um erro (ex: 404), mostra a mensagem de erro
+            messageDisplay.textContent = data.error || 'Não foi possível obter a receita.';
+            messageDisplay.classList.remove('d-none');
             lottieLoader.classList.add('d-none'); // Esconde a animação
-            recipeDisplay.classList.remove('d-none');
-            recipeDisplay.classList.add('fade-in'); // Adiciona a animação de fade-in
-
-        } catch (error) {
-            console.error('Erro ao buscar receita:', error);
-            alert('Ocorreu um erro ao buscar a receita. Tente novamente.');
-            // Esconde o loader em caso de erro
-            lottieLoader.classList.add('d-none');
-        } finally {
-            // Reativa o botão e restaura o texto
-            getRecipeBtn.disabled = false;
-            getRecipeBtn.textContent = 'Sortear Outra Receita!';
+            return; // Termina a execução aqui
         }
+
+        const recipe = data;
+        currentRecipeId = recipe._id.$oid;
+
+        // Preenche os dados da receita
+        document.getElementById('recipe-title').textContent = recipe.nome;
+        populateInstructions(recipe.instrucoes);
+        populateIngredients(recipe.ingredientes);
+
+        // Mostra o card da receita
+        lottieLoader.classList.add('d-none');
+        recipeDisplay.classList.remove('d-none');
+        recipeDisplay.classList.add('fade-in');
+
+    } catch (error) {
+        console.error('Erro ao buscar receita:', error);
+        messageDisplay.textContent = 'Ocorreu um erro de comunicação ao buscar a receita. Tente novamente.';
+        messageDisplay.classList.remove('d-none');
+        lottieLoader.classList.add('d-none');
+    } finally {
+        // Reativa ambos os botões e restaura o texto original do botão clicado
+        document.getElementById('get-recipe-btn').disabled = false;
+        document.getElementById('search-recipe-btn').disabled = false;
+        triggerButton.textContent = originalButtonText;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const getRecipeBtn = document.getElementById('get-recipe-btn');
+    const searchForm = document.getElementById('search-form');
+
+    // Evento para o botão de sorteio aleatório
+    getRecipeBtn.addEventListener('click', () => {
+        fetchAndDisplayRecipe('/api/recipe/random', getRecipeBtn);
     });
 
     // Lógica para o botão de favoritar
@@ -159,6 +199,42 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Erro ao favoritar receita:', error);
             alert(error.message);
+        }
+    });
+
+    // Evento para o formulário de busca por ingrediente
+    searchForm.addEventListener('submit', (event) => {
+        event.preventDefault(); // Impede o recarregamento da página
+
+        const ingredientInput = document.getElementById('ingredient-input');
+        const searchBtn = document.getElementById('search-recipe-btn');
+        const ingredient = ingredientInput.value.trim();
+
+        let apiUrl = '/api/recipe/random';
+        if (ingredient) {
+            apiUrl += `?ingredient=${encodeURIComponent(ingredient)}`;
+        }
+        fetchAndDisplayRecipe(apiUrl, searchBtn);
+    });
+
+    // Validação em tempo real que impede a escrita de caracteres inválidos
+    // e mostra a mensagem de validação nativa do navegador.
+    const ingredientInput = document.getElementById('ingredient-input');
+    ingredientInput.addEventListener('input', function () {
+        const invalidCharsRegex = /[^A-Za-zÀ-ú\s-]/g;
+        const currentValue = this.value;
+
+        if (invalidCharsRegex.test(currentValue)) {
+            // Define uma mensagem de erro personalizada.
+            this.setCustomValidity('Só são permitidas letras, espaços e hífens.');
+            // Força o navegador a mostrar a "bolha" de validação.
+            this.reportValidity();
+            // Remove os caracteres inválidos.
+            this.value = currentValue.replace(invalidCharsRegex, '');
+            // Limpa a mensagem de erro após um curto período para que o utilizador possa continuar.
+            setTimeout(() => {
+                this.setCustomValidity('');
+            }, 1500);
         }
     });
 });

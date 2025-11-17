@@ -9,12 +9,21 @@
 
 /* Estilos Gerais */
 body {
-    background-color: var(--cream);
     color: var(--dark-text);
     font-family: 'Poppins', sans-serif;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+
+    /* --- Fundo com imagem --- */
+    /* A cor creme serve de fallback caso a imagem não carregue */
+    background-color: var(--cream); 
+    /* Aplica uma sobreposição de cor creme semi-transparente sobre a imagem para melhorar a legibilidade */
+    background-image: linear-gradient(rgba(253, 248, 225, 0.85), rgba(253, 248, 225, 0.85)), url('../images/fundo.webp');
+    background-size: cover; /* Garante que a imagem cobre todo o fundo */
+    background-position: top center; /* Alinha a imagem ao topo e centro */
+    background-repeat: no-repeat; /* Evita que a imagem se repita */
+    background-attachment: fixed; /* Mantém a imagem fixa durante o scroll */
 }
 
 main {
