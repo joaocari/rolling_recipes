@@ -1,35 +1,134 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rolling Recipes 🎲</title>
-    <!-- Link para o ficheiro de estilos CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>🎲 Rolling Recipes 🍳</h1>
-            <p class="subtitle">Role o dado e descubra uma receita incrível!</p>
-        </header>
+{% extends "base.html" %}
 
-        <main>
-            <!-- O "?" inicial será substituído pelo JavaScript -->
-            <div class="d12-dice" id="dice">?</div>
-            
-            <button class="roll-button" id="rollButton">
-                🎲 GIRAR
-            </button>
+{% block title %}Página Inicial - Rolling Recipes{% endblock %}
 
-            <div class="recipe-card" id="recipeResult">
-                <h3>Clique no botão para sortear uma receita</h3>
-                <p>Temos 10 receitas deliciosas à sua espera!</p>
+{% block content %}
+<div class="text-center my-5" data-auth="{{ current_user.is_authenticated|tojson }}">
+    <h1 class="display-4">A sua próxima receita favorita</h1>
+    <p class="lead">Não sabe o que cozinhar? Clique no botão abaixo e nós damos-lhe uma ideia!</p>
+    <button id="get-recipe-btn" class="btn btn-primary btn-lg mt-3">
+        <span id="btn-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+        Encontrar Receita!
+    </button>
+</div>
+
+<!-- Área onde a receita será exibida -->
+<div id="recipe-display" class="row justify-content-center d-none">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 id="recipe-title" class="card-title"></h2>
+                <h5 class="text-muted">Ingredientes:</h5>
+                <ul id="recipe-ingredients" class="list-group list-group-flush">
+                    <!-- Ingredientes serão inseridos aqui via JS -->
+                </ul>
+                <h5 class="mt-4 text-muted">Instruções:</h5>
+                <!-- As instruções serão renderizadas aqui como uma lista ordenada -->
+                <ol id="recipe-instructions" class="ps-3"></ol>
+                <!-- Botão de Favoritar -->
+                <div class="mt-4">
+                    <button id="favorite-btn" class="btn btn-outline-danger">
+                        ❤️ Guardar nos Favoritos
+                    </button>
+                </div>
             </div>
-        </main>
+        </div>
     </div>
+</div>
+{% endblock %}
 
-    <!-- Link para o ficheiro JavaScript no final do body -->
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
+{% block scripts %}
+<script>
+// Passa o estado de autenticação do Flask para o JavaScript
+const isAuthenticated = JSON.parse(document.querySelector('[data-auth]').dataset.auth);
+let currentRecipeId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const getRecipeBtn = document.getElementById('get-recipe-btn');
+    const recipeDisplay = document.getElementById('recipe-display');
+    const btnSpinner = document.getElementById('btn-spinner');
+
+    getRecipeBtn.addEventListener('click', async () => {
+        // Mostra o spinner e desativa o botão
+        btnSpinner.classList.remove('d-none');
+        getRecipeBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/recipe/random');
+            if (!response.ok) {
+                throw new Error('Não foi possível obter a receita.');
+            }
+            const recipe = await response.json();
+
+            // Guarda o ID da receita atual
+            currentRecipeId = recipe._id.$oid;
+
+            // Preenche os dados da receita
+            document.getElementById('recipe-title').textContent = recipe.nome;
+            
+            const instructionsList = document.getElementById('recipe-instructions');
+            instructionsList.innerHTML = ''; // Limpa a lista anterior
+            // Agora 'recipe.instrucoes' já é uma lista de passos vinda da API
+            recipe.instrucoes.forEach(step => {
+                const li = document.createElement('li');
+                li.textContent = step;
+                instructionsList.appendChild(li);
+            });
+            
+            const ingredientsList = document.getElementById('recipe-ingredients');
+            ingredientsList.innerHTML = ''; // Limpa a lista de ingredientes
+            recipe.ingredientes.forEach(ing => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.textContent = ing;
+                ingredientsList.appendChild(li);
+            });
+
+            // Mostra o card da receita
+            recipeDisplay.classList.remove('d-none');
+
+        } catch (error) {
+            console.error('Erro ao buscar receita:', error);
+            alert('Ocorreu um erro ao buscar a receita. Tente novamente.');
+        } finally {
+            // Esconde o spinner e reativa o botão
+            btnSpinner.classList.add('d-none');
+            getRecipeBtn.disabled = false;
+        }
+    });
+
+    // Lógica para o botão de favoritar
+    const favoriteBtn = document.getElementById('favorite-btn');
+    favoriteBtn.addEventListener('click', async () => {
+        if (!isAuthenticated) {
+            // Se o utilizador não estiver autenticado, mostra uma mensagem
+            alert('Para guardar receitas nos favoritos, precisa de entrar ou registar-se!');
+            return;
+        }
+
+        if (!currentRecipeId) return;
+
+        try {
+            const response = await fetch('/api/user/favorites/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ recipe_id: currentRecipeId }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message); // Ex: "Receita adicionada aos favoritos!"
+            } else {
+                throw new Error(result.error || 'Não foi possível adicionar aos favoritos.');
+            }
+        } catch (error) {
+            console.error('Erro ao favoritar receita:', error);
+            alert(error.message);
+        }
+    });
+});
+</script>
+{% endblock %}

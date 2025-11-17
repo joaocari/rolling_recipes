@@ -1,0 +1,51 @@
+/* Paleta de Cores */
+:root {
+    --cream: #FDF8E1;
+    --dark-text: #3D3522;
+    --primary-accent: #E86A33;
+    --light-gray: #f8f9fa;
+    --white: #FFFFFF;
+}
+
+/* Estilos Gerais */
+body {
+    background-color: var(--cream);
+    color: var(--dark-text);
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex-grow: 1;
+}
+
+/* Barra de Navegação */
+.navbar {
+    background-color: var(--white) !important;
+}
+
+.navbar-brand, .nav-link {
+    color: var(--dark-text) !important;
+    font-weight: 400;
+}
+
+.nav-link:hover {
+    color: var(--primary-accent) !important;
+}
+
+/* Cartões e Botões */
+.card {
+    border: none;
+}
+
+.btn-primary {
+    background-color: var(--primary-accent);
+    border-color: var(--primary-accent);
+}
+
+.btn-primary:hover {
+    background-color: #c75a2a;
+    border-color: #c75a2a;
+}
