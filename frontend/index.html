@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Página Inicial - Rolling Recipes{% endblock %}
+
+{% block content %}
+<div class="text-center my-5">
+    <h1 class="display-4">A sua próxima receita favorita</h1>
+    <p class="lead">Não sabe o que cozinhar? Clique no botão abaixo e nós damos-lhe uma ideia!</p>
+    <button id="get-recipe-btn" class="btn btn-primary btn-lg mt-3">
+        Encontrar Receita!
+    </button>
+</div>
+
+<!-- Container para a animação Lottie do dado -->
+<div id="lottie-loader" class="lottie-container d-none">
+    <lottie-player src="{{ url_for('static', filename='dice_6.json') }}" background="transparent" speed="1" loop autoplay />
+</div>
+
+<!-- Área onde a receita será exibida -->
+<div id="recipe-display" class="row justify-content-center d-none">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 id="recipe-title" class="card-title"></h2>
+                <h5 class="text-muted">Ingredientes:</h5>
+                <ul id="recipe-ingredients" class="list-group list-group-flush">
+                    <!-- Ingredientes serão inseridos aqui via JS -->
+                </ul>
+                <h5 class="mt-4 text-muted">Passos:</h5>
+                <!-- As instruções serão renderizadas aqui como uma lista ordenada -->
+                <ol id="recipe-instructions" class="ps-3"></ol>
+                <!-- Botão de Favoritar -->
+                <div class="mt-4">
+                    <button id="favorite-btn" class="btn btn-outline-danger">
+                        ❤️ Guardar nos Favoritos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Passa o estado de autenticação do Flask para o JavaScript
+const isAuthenticated = {{ current_user.is_authenticated|tojson }};
+let currentRecipeId = null;
+
+/**
+ * Preenche a lista de ingredientes no cartão da receita.
+ * @param {string[]} ingredients - A lista de ingredientes.
+ */
+function populateIngredients(ingredients) {
+    const ingredientsList = document.getElementById('recipe-ingredients');
+    ingredientsList.innerHTML = ''; // Limpa a lista anterior
+    ingredients.forEach(ing => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.textContent = ing;
+        ingredientsList.appendChild(li);
+    });
+}
+
+/**
+ * Preenche a lista de instruções no cartão da receita.
+ * @param {string[]} steps - A lista de passos da receita.
+ */
+function populateInstructions(steps) {
+    const instructionsList = document.getElementById('recipe-instructions');
+    instructionsList.innerHTML = ''; // Limpa a lista anterior
+    steps.forEach(step => {
+        const li = document.createElement('li');
+        li.textContent = step;
+        instructionsList.appendChild(li);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const getRecipeBtn = document.getElementById('get-recipe-btn');
+    const recipeDisplay = document.getElementById('recipe-display');
+    const lottieLoader = document.getElementById('lottie-loader');
+
+    getRecipeBtn.addEventListener('click', async () => {
+        // Mostra a animação do dado e desativa o botão
+        recipeDisplay.classList.add('d-none'); // Esconde a receita anterior
+        lottieLoader.classList.remove('d-none');
+        getRecipeBtn.disabled = true;
+        getRecipeBtn.textContent = 'A sortear...';
+
+        try {
+            // Define um atraso mínimo de 4 segundos para a animação ser visível
+            const minimumDelay = new Promise(resolve => setTimeout(resolve, 4000));
+
+            // Espera pela resposta da API e pelo atraso mínimo em simultâneo.
+            // A animação ficará visível durante pelo menos 4 segundos.
+            const [response] = await Promise.all([
+                fetch('/api/recipe/random'),
+                minimumDelay
+            ]);
+
+            if (!response.ok) {
+                throw new Error('Não foi possível obter a receita.');
+            }
+            const recipe = await response.json();
+
+            // Guarda o ID da receita atual
+            currentRecipeId = recipe._id.$oid;
+
+            // Preenche os dados da receita
+            document.getElementById('recipe-title').textContent = recipe.nome;
+            populateInstructions(recipe.instrucoes);
+            populateIngredients(recipe.ingredientes);
+
+            // Mostra o card da receita
+            lottieLoader.classList.add('d-none'); // Esconde a animação
+            recipeDisplay.classList.remove('d-none');
+            recipeDisplay.classList.add('fade-in'); // Adiciona a animação de fade-in
+
+        } catch (error) {
+            console.error('Erro ao buscar receita:', error);
+            alert('Ocorreu um erro ao buscar a receita. Tente novamente.');
+            // Esconde o loader em caso de erro
+            lottieLoader.classList.add('d-none');
+        } finally {
+            // Reativa o botão e restaura o texto
+            getRecipeBtn.disabled = false;
+            getRecipeBtn.textContent = 'Sortear Outra Receita!';
+        }
+    });
+
+    // Lógica para o botão de favoritar
+    const favoriteBtn = document.getElementById('favorite-btn');
+    favoriteBtn.addEventListener('click', async () => {
+        if (!isAuthenticated) {
+            // Se o utilizador não estiver autenticado, mostra uma mensagem
+            alert('Para guardar receitas nos favoritos, precisa de entrar ou registar-se!');
+            return;
+        }
+
+        if (!currentRecipeId) return;
+
+        try {
+            const response = await fetch('/api/user/favorites/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ recipe_id: currentRecipeId }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message); // Ex: "Receita adicionada aos favoritos!"
+            } else {
+                throw new Error(result.error || 'Não foi possível adicionar aos favoritos.');
+            }
+        } catch (error) {
+            console.error('Erro ao favoritar receita:', error);
+            alert(error.message);
+        }
+    });
+});
+</script>
+{% endblock %}

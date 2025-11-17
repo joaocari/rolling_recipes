@@ -1,153 +1,132 @@
-# /rolling_recipe_app/app.py
-
-import os
-from flask import Flask, request, jsonify, session
+# -*- coding: utf-8 -*-
+from flask import Flask, jsonify, render_template, request
 from flask_pymongo import PyMongo
-from functools import wraps
-from models import models
+from flask_login import LoginManager, login_required, current_user
+from bson import ObjectId
+from bson.json_util import dumps
+import random
+import os
 
-# --- Configuração da Aplicação ---
-app = Flask(__name__)
+# Importa o Blueprint de autenticação
+from auth import auth_bp
+from models import User
 
-# Chave secreta para a gestão de sessões
-app.secret_key = os.environ.get("SECRET_KEY", "uma-chave-secreta-muito-segura")
+# Cria a aplicação Flask
+app = Flask(__name__,
+            static_folder='static',
+            template_folder='frontend')  # A pasta 'frontend' contém os templates HTML
 
-# Configuração da ligação ao MongoDB
-app.config["MONGO_URI"] = os.environ.get("MONGO_URI", "mongodb://localhost:27017/rolling_recipes_db")
-mongo = PyMongo(app)
+# Chave secreta para a gestão de sessões (necessária para o Flask-Login)
+app.config['SECRET_KEY'] = 'uma-chave-secreta-muito-segura-e-dificil-de-adivinhar'
 
-# --- Decorador de Autenticação ---
+#--- Configuração do MongoDB ---
+#Altere a URI se a sua base de dados não estiver local
+app.config["MONGO_URI"] = "mongodb://localhost:27017/rolling_recipes_db"
+mongo = PyMongo()
+mongo.init_app(app)
 
-def login_required(f):
-    """
-    Decorador para proteger rotas que exigem autenticação.
-    Verifica se 'user_id' está na sessão.
-    """
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return jsonify({"error": "Autenticação necessária"}), 401
-        return f(*args, **kwargs)
-    return decorated_function
+# --- Configuração do Flask-Login ---
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login' # Redireciona para esta rota se o acesso for negado
 
-# --- Rotas de Autenticação ---
+@login_manager.user_loader
+def load_user(user_id):
+    """Carrega o utilizador da base de dados para a sessão do Flask-Login."""
+    user_doc = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+    if user_doc:
+        # Retorna uma instância da nossa classe User
+        return User(user_doc)
+    return None
 
-@app.route('/register', methods=['POST'])
-def register():
-    """Regista um novo utilizador."""
-    data = request.get_json()
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
+# --- Registo dos Blueprints ---
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
-    if not all([username, email, password]):
-        return jsonify({"error": "Faltam dados obrigatórios"}), 400
+# --- Rotas da Aplicação ---
 
-    user_id = models.create_user(mongo, username, email, password)
+# Rota principal que serve a página HTML
+@app.route('/')
+def index():
+    # Renderiza o ficheiro index.html que está na pasta 'frontend'
+    return render_template('index.html')
 
-    if user_id is None:
-        return jsonify({"error": "Utilizador ou email já existe"}), 409
+# Rota para a página de receitas favoritas
+@app.route('/favorites')
+@login_required # Garante que apenas utilizadores autenticados podem aceder
+def favorites():
+    # Obtém a lista de IDs de receitas favoritas do utilizador atual
+    favorite_ids = current_user.favorites
 
-    return jsonify({"message": "Utilizador criado com sucesso", "user_id": str(user_id)}), 201
+    favorite_recipes = []
+    if favorite_ids:
+        # Busca todas as receitas cujos IDs estão na lista de favoritos
+        favorite_recipes = list(mongo.db.receitas.find({
+            "_id": {"$in": favorite_ids}
+        }))
 
-@app.route('/login', methods=['POST'])
-def login():
-    """Autentica um utilizador e cria uma sessão."""
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    return render_template('favorites.html', recipes=favorite_recipes)
 
-    user = models.find_user(mongo, username)
-
-    if user and models.verify_password(user['password'], password):
-        session['user_id'] = str(user['_id'])
-        session['username'] = user['username']
-        return jsonify({"message": f"Login bem-sucedido. Bem-vindo, {user['username']}!"}), 200
+# Rota da API para obter uma receita aleatória
+@app.route('/api/recipe/random')
+def get_random_recipe():
+    recipes_collection = mongo.db.receitas
+    # O '$sample' do MongoDB é perfeito para obter documentos aleatórios
+    random_recipe = list(recipes_collection.aggregate([{"$sample": {"size": 1}}]))
     
-    return jsonify({"error": "Credenciais inválidas"}), 401
+    if not random_recipe:
+        return jsonify({"error": "Nenhuma receita encontrada na base de dados."}), 404
 
-@app.route('/logout', methods=['GET'])
-def logout():
-    """Encerra a sessão do utilizador."""
-    session.clear()
-    return jsonify({"message": "Logout bem-sucedido"}), 200
+    # Extrai a receita da lista
+    recipe = random_recipe[0]
 
-# --- Rotas de Receitas (Públicas) ---
+    # dumps converte o formato do MongoDB (BSON) para JSON
+    return dumps(recipe)
 
-@app.route('/roll-random', methods=['GET'])
-def roll_random():
-    """Retorna uma receita aleatória."""
-    recipe = models.get_random_recipe(mongo)
-    if recipe:
-        return jsonify(recipe), 200
-    return jsonify({"error": "Nenhuma receita encontrada"}), 404
-
-@app.route('/roll-by-ingredient', methods=['POST'])
-def roll_by_ingredient():
-    """Retorna uma receita aleatória baseada num ingrediente."""
+# Rota da API para adicionar uma receita aos favoritos do utilizador
+@app.route('/api/user/favorites/add', methods=['POST'])
+@login_required
+def add_favorite():
     data = request.get_json()
-    ingredient = data.get('ingredient')
+    recipe_id = data.get('recipe_id')
 
-    if not ingredient:
-        return jsonify({"error": "Ingrediente não fornecido"}), 400
+    if not recipe_id:
+        return jsonify({"error": "ID da receita em falta."}), 400
 
-    recipe = models.get_recipe_by_ingredient(mongo, ingredient)
-    if recipe:
-        return jsonify(recipe), 200
-    return jsonify({"error": f"Nenhuma receita encontrada com o ingrediente '{ingredient}'"}), 404
+    # Adiciona o ObjectId da receita ao array 'favorites' do utilizador
+    # O operador $addToSet previne que a mesma receita seja adicionada várias vezes
+    result = mongo.db.users.update_one(
+        {"_id": ObjectId(current_user.id)},
+        {"$addToSet": {"favorites": ObjectId(recipe_id)}}
+    )
 
-@app.route('/ingredients', methods=['GET'])
-def get_ingredients():
-    """Retorna uma lista de todos os ingredientes únicos."""
-    ingredients = models.get_unique_ingredients(mongo)
-    return jsonify(ingredients), 200
+    if result.modified_count > 0:
+        return jsonify({"message": "Receita adicionada aos favoritos!"}), 200
+    else:
+        return jsonify({"message": "Esta receita já estava nos seus favoritos."}), 200
 
-# --- Rotas de Favoritos (Protegidas) ---
-
-@app.route('/favorites', methods=['GET'])
+# Rota da API para remover uma receita dos favoritos
+@app.route('/api/user/favorites/remove', methods=['POST'])
 @login_required
-def get_favorites():
-    """Retorna as receitas favoritas do utilizador autenticado."""
-    user_id = session['user_id']
-    favorites = models.get_user_favorites(mongo, user_id)
-    return jsonify(favorites), 200
-
-@app.route('/add-favorite', methods=['POST'])
-@login_required
-def add_favorite_route():
-    """Adiciona uma receita aos favoritos do utilizador."""
+def remove_favorite():
     data = request.get_json()
-    recipe_name = data.get('recipe_name')
-    if not recipe_name:
-        return jsonify({"error": "Nome da receita não fornecido"}), 400
+    recipe_id = data.get('recipe_id')
 
-    user_id = session['user_id']
-    models.add_favorite(mongo, user_id, recipe_name)
-    return jsonify({"message": f"'{recipe_name}' adicionada aos favoritos."}), 200
+    if not recipe_id:
+        return jsonify({"error": "ID da receita em falta."}), 400
 
-@app.route('/remove-favorite', methods=['POST'])
-@login_required
-def remove_favorite_route():
-    """Remove uma receita dos favoritos do utilizador."""
-    data = request.get_json()
-    recipe_name = data.get('recipe_name')
-    if not recipe_name:
-        return jsonify({"error": "Nome da receita não fornecido"}), 400
+    # Remove o ObjectId da receita do array 'favorites' do utilizador
+    # O operador $pull remove todas as instâncias do valor do array
+    result = mongo.db.users.update_one(
+        {"_id": ObjectId(current_user.id)},
+        {"$pull": {"favorites": ObjectId(recipe_id)}}
+    )
 
-    user_id = session['user_id']
-    models.remove_favorite(mongo, user_id, recipe_name)
-    return jsonify({"message": f"'{recipe_name}' removida dos favoritos."}), 200
-
-@app.route('/is-favorite/<path:recipe_name>', methods=['GET'])
-@login_required
-def is_favorite_route(recipe_name):
-    """Verifica se uma receita está nos favoritos do utilizador."""
-    user_id = session['user_id']
-    is_fav = models.is_favorite(mongo, user_id, recipe_name)
-    return jsonify({"is_favorite": is_fav}), 200
-
-# --- Ponto de Entrada ---
+    if result.modified_count > 0:
+        return jsonify({"message": "Receita removida dos favoritos."}), 200
+    else:
+        return jsonify({"error": "Não foi possível remover a receita ou já não era favorita."}), 404
 
 if __name__ == '__main__':
-    # O modo debug não é recomendado para produção
+    # Inicia o servidor em modo de debug
+    print("A iniciar o servidor Flask...")
     app.run(debug=True)
