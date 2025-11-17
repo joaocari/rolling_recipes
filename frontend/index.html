@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rolling Recipes 🎲</title>
+    <!-- Link para o ficheiro de estilos CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎲 Rolling Recipes 🍳</h1>
+            <p class="subtitle">Role o dado e descubra uma receita incrível!</p>
+        </header>
+
+        <main>
+            <!-- O "?" inicial será substituído pelo JavaScript -->
+            <div class="d12-dice" id="dice">?</div>
+            
+            <button class="roll-button" id="rollButton">
+                🎲 GIRAR
+            </button>
+
+            <div class="recipe-card" id="recipeResult">
+                <h3>Clique no botão para sortear uma receita</h3>
+                <p>Temos 10 receitas deliciosas à sua espera!</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Link para o ficheiro JavaScript no final do body -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
