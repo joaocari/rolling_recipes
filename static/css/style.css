@@ -49,3 +49,20 @@ main {
     background-color: #c75a2a;
     border-color: #c75a2a;
 }
+
+/* Estilo para o container da animação Lottie */
+.lottie-container {
+    width: 350px;
+    height: 350px; /* Garante que o container tem altura */
+    margin: 2rem auto;
+}
+
+/* Classes para a transição suave (fade) */
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

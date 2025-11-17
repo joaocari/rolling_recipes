@@ -13,17 +13,17 @@ from models import User
 
 # Cria a aplicação Flask
 app = Flask(__name__,
-            static_folder='frontend',  # Pasta para ficheiros estáticos (CSS, JS, imagens)
-            template_folder='frontend') # Pasta para o template HTML
+            static_folder='static',
+            template_folder='frontend')  # A pasta 'frontend' contém os templates HTML
 
 # Chave secreta para a gestão de sessões (necessária para o Flask-Login)
 app.config['SECRET_KEY'] = 'uma-chave-secreta-muito-segura-e-dificil-de-adivinhar'
 
-# --- Configuração do MongoDB ---
-# Altere a URI se a sua base de dados não estiver local
+#--- Configuração do MongoDB ---
+#Altere a URI se a sua base de dados não estiver local
 app.config["MONGO_URI"] = "mongodb://localhost:27017/rolling_recipes_db"
-mongo = PyMongo() # Cria a instância sem a associar à app
-mongo.init_app(app) # Associa a instância à app
+mongo = PyMongo()
+mongo.init_app(app)
 
 # --- Configuração do Flask-Login ---
 login_manager = LoginManager()
@@ -63,11 +63,6 @@ def favorites():
         favorite_recipes = list(mongo.db.receitas.find({
             "_id": {"$in": favorite_ids}
         }))
-        # Processa as instruções para serem mais legíveis no template
-        for recipe in favorite_recipes:
-            if isinstance(recipe.get('instrucoes'), str):
-                # Divide as instruções por vírgula e remove passos vazios
-                recipe['instrucoes'] = [step.strip() for step in recipe['instrucoes'].split(',') if step.strip()]
 
     return render_template('favorites.html', recipes=favorite_recipes)
 
@@ -83,10 +78,6 @@ def get_random_recipe():
 
     # Extrai a receita da lista
     recipe = random_recipe[0]
-
-    # Processa as instruções para serem mais legíveis, tal como na página de favoritos
-    if isinstance(recipe.get('instrucoes'), str):
-        recipe['instrucoes'] = [step.strip() for step in recipe['instrucoes'].split(',') if step.strip()]
 
     # dumps converte o formato do MongoDB (BSON) para JSON
     return dumps(recipe)
@@ -138,5 +129,4 @@ def remove_favorite():
 if __name__ == '__main__':
     # Inicia o servidor em modo de debug
     print("A iniciar o servidor Flask...")
-    print(f"A procurar templates na pasta: {os.path.abspath(app.template_folder)}")
     app.run(debug=True)
