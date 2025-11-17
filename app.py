@@ -69,15 +69,34 @@ def favorites():
 # Rota da API para obter uma receita aleatória
 @app.route('/api/recipe/random')
 def get_random_recipe():
+    """
+    Obtém uma receita aleatória. Se um parâmetro 'ingredient' for fornecido na URL,
+    filtra as receitas por esse ingrediente antes de fazer o sorteio.
+    """
     recipes_collection = mongo.db.receitas
-    # O '$sample' do MongoDB é perfeito para obter documentos aleatórios
-    random_recipe = list(recipes_collection.aggregate([{"$sample": {"size": 1}}]))
-    
-    if not random_recipe:
-        return jsonify({"error": "Nenhuma receita encontrada na base de dados."}), 404
+    ingredient = request.args.get('ingredient')
 
-    # Extrai a receita da lista
-    recipe = random_recipe[0]
+    # O aggregation pipeline permite construir consultas complexas passo a passo.
+    pipeline = []
+
+    if ingredient:
+        # 1º Passo (opcional): Filtrar por ingrediente.
+        # A busca usa uma expressão regular com a opção 'i' para ser case-insensitive.
+        pipeline.append({
+            "$match": {"ingredientes": {"$regex": ingredient, "$options": "i"}}
+        })
+
+    # 2º Passo: Obter 1 documento aleatório do resultado (filtrado ou da coleção inteira).
+    pipeline.append({"$sample": {"size": 1}})
+
+    random_recipe_list = list(recipes_collection.aggregate(pipeline))
+
+    if not random_recipe_list:
+        # Se a lista estiver vazia, retorna um erro.
+        error_message = f"Nenhuma receita encontrada com o ingrediente '{ingredient}'." if ingredient else "Nenhuma receita encontrada na base de dados."
+        return jsonify({"error": error_message}), 404
+
+    recipe = random_recipe_list[0]
 
     # dumps converte o formato do MongoDB (BSON) para JSON
     return dumps(recipe)
