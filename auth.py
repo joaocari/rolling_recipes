@@ -39,17 +39,20 @@ def register():
         from app import mongo
 
         username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
 
-        user_doc = mongo.db.users.find_one({'username': username})
+        # Verifica se o nome de utilizador ou o email já existem
+        user_doc = mongo.db.users.find_one({"$or": [{'username': username}, {'email': email}]})
 
         if user_doc:
-            flash('Este nome de utilizador já existe.')
+            flash('Este nome de utilizador ou email já está registado.')
             return redirect(url_for('auth.register'))
 
         # Cria um novo utilizador com a password encriptada
         mongo.db.users.insert_one({
             'username': username,
+            'email': email,
             'password': generate_password_hash(password, method='pbkdf2:sha256')
         })
 
