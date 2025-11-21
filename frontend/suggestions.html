@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Sugerir uma Receita{% endblock %}
+
+{% block head %}
+{{ super() }} <!-- Mantém o conteúdo do bloco head do base.html -->
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center suggestions-page">
+    <div class="col-12 col-lg-8">
+        <h1 class="text-center mb-4">Sugerir uma Nova Receita</h1>
+        <p class="text-center text-muted mb-5">Gostamos muito da sua ajuda para fazer crescer a nossa coleção! Por favor, preencha os campos abaixo.</p>
+
+        <!-- Div para mostrar mensagens de sucesso ou erro -->
+        <div id="message-display" class="alert d-none" role="alert"></div>
+
+        <form id="suggestion-form" class="form-container shadow-sm">
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome da Receita</label>
+                <input type="text" class="form-control" id="nome" name="nome" required>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="categoria" class="form-label">Categoria</label>
+                    <select class="form-select" id="categoria" name="categoria" required>
+                        <option value="" disabled selected>Escolha uma opção...</option>
+                        <option value="Carne">Carne</option>
+                        <option value="Peixe">Peixe</option>
+                        <option value="Marisco">Marisco</option>
+                        <option value="Sopa">Sopa</option>
+                        <option value="Vegetariano">Vegetariano</option>
+                        <option value="Airfryer">Airfryer</option>
+                        <option value="Doce">Doce</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="dificuldade" class="form-label">Dificuldade</label>
+                    <select class="form-select" id="dificuldade" name="dificuldade" required>
+                        <option value="" disabled selected>Escolha uma opção...</option>
+                        <option value="Fácil">Fácil</option>
+                        <option value="Média">Média</option>
+                        <option value="Difícil">Difícil</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="tempo_preparo" class="form-label">Tempo de Preparo</label>
+                    <input type="text" class="form-control" id="tempo_preparo" name="tempo_preparo" placeholder="Ex: 45 min">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="ingredientes" class="form-label">Ingredientes</label>
+                <textarea class="form-control auto-growing-textarea" id="ingredientes" name="ingredientes" rows="4" placeholder="Ex:&#10;2 ovos&#10;50ml de leite&#10;Sal e pimenta a gosto&#10;1 colher de sopa de manteiga" required></textarea>
+                <div class="form-text">Pode colar uma lista de ingredientes aqui. Coloque um por linha.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="instrucoes" class="form-label">Instruções</label>
+                <textarea class="form-control auto-growing-textarea" id="instrucoes" name="instrucoes" rows="6" placeholder="Ex:&#10;Passo 1: Bata os ovos com o leite numa tigela.&#10;Passo 2: Tempere com sal e pimenta.&#10;Passo 3: Aqueça a manteiga numa frigideira em lume médio." required></textarea>
+                <div class="form-text">Pode colar os passos da receita aqui. Coloque um por linha.</div>
+            </div>
+
+            <div class="mb-4">
+                <label for="link_receita" class="form-label">Link da Receita (Opcional)</label>
+                <input type="url" class="form-control" id="link_receita" name="link_receita" placeholder="https://exemplo.com/receita">
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-warning btn-lg">Enviar Sugestão</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('suggestion-form');
+    const messageDisplay = document.getElementById('message-display');
+
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault(); // Impede o envio tradicional do formulário
+
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'A enviar...';
+
+        // Recolhe os dados dos campos normais
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // Validação para garantir que pelo menos um ingrediente e uma instrução foram adicionados
+        if (!data.ingredientes.trim() || !data.instrucoes.trim()) {
+            alert('Por favor, adicione pelo menos um ingrediente e uma instrução.');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enviar Sugestão';
+            return;
+        }
+        try {
+            const response = await fetch('/api/suggestions/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            // Mostra a mensagem de feedback
+            messageDisplay.textContent = result.message || result.error;
+            messageDisplay.classList.remove('d-none', 'alert-danger', 'alert-success');
+
+            if (response.ok) {
+                messageDisplay.classList.add('alert-success');
+                form.reset(); // Limpa o formulário em caso de sucesso
+            } else {
+                messageDisplay.classList.add('alert-danger');
+                throw new Error(result.error);
+            }
+
+        } catch (error) {
+            console.error('Erro ao enviar sugestão:', error);
+            messageDisplay.textContent = 'Ocorreu um erro de comunicação. Tente novamente.';
+            messageDisplay.classList.remove('d-none');
+            messageDisplay.classList.add('alert-danger');
+        } finally {
+            // Reativa o botão
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enviar Sugestão';
+        }
+    });
+
+    // Lógica para fazer as textareas crescerem automaticamente
+    const textareas = document.querySelectorAll('.auto-growing-textarea');
+    textareas.forEach(textarea => {
+        function autoGrow() {
+            textarea.style.height = 'auto'; // Reseta a altura
+            textarea.style.height = (textarea.scrollHeight) + 'px'; // Define a altura com base no conteúdo
+        }
+        textarea.addEventListener('input', autoGrow);
+        // Chama a função uma vez para ajustar o tamanho inicial caso haja conteúdo pré-preenchido
+        autoGrow();
+    });
+
+});
+</script>
+{% endblock %}
