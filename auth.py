@@ -24,7 +24,7 @@ def login():
         if user_doc and check_password_hash(user_doc['password'], password):
             user_obj = User(user_doc)
             login_user(user_obj) # Efetua o login com Flask-Login
-            flash('Login bem-sucedido!')
+            flash('Login bem-sucedido!', 'success')
             return redirect(url_for('index'))
         else:
             flash('Nome de utilizador ou password inválidos.')
