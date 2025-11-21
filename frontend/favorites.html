@@ -2,28 +2,65 @@
 
 {% block title %}Minhas Receitas Favoritas{% endblock %}
 
+{% block head %}
+{{ super() }} <!-- Mantém o conteúdo do bloco head do base.html -->
+<style>
+    .recipe-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .recipe-card.clickable {
+        cursor: pointer;
+    }
+    /* Efeito de realce para o botão "Ver" */
+    .btn-warning.view-recipe-btn:hover {
+        background-color: #ffab00; /* Um tom de laranja mais escuro */
+        border-color: #ff9f00;
+        transform: scale(1.05); /* Aumenta ligeiramente o botão */
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <h1 class="mb-4">Minhas Receitas Favoritas</h1>
-
 <div id="favorites-list">
     {% if recipes %}
-        <ul class="list-group">
-            {% for recipe in recipes %}
-            <li class="list-group-item d-flex justify-content-between align-items-center" id="recipe-item-{{ recipe._id }}">
-                <!-- Link para abrir o modal, agora ocupa o espaço disponível -->
-                <a href="#" class="text-decoration-none text-dark view-recipe-btn flex-grow-1" 
-                   data-bs-toggle="modal" 
-                   data-bs-target="#recipeModal"
-                   data-id="{{ recipe._id }}">
-                    {{ recipe.nome }}
-                </a>
-                <!-- Botão de remover diretamente na lista -->
-                <button class="btn btn-link text-danger p-0 ms-3 remove-favorite-list-btn" data-id="{{ recipe._id }}" title="Remover dos Favoritos">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16"><path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5-.03a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5"/></svg>
-                </button>
-            </li>
-            {% endfor %}
-        </ul>
+        <div class="row">
+            <!-- Limita a largura da lista em ecrãs médios e grandes -->
+            <div class="col-12 col-md-10 offset-md-1 col-lg-8 offset-lg-2">
+                <ul class="list-group">
+                    {% for recipe in recipes %}
+                    <!-- Caixa horizontal clicável para cada receita -->
+                    <li class="list-group-item d-flex align-items-center p-2 mb-3 shadow-sm recipe-card clickable" id="recipe-item-{{ recipe._id }}" data-id="{{ recipe._id }}">
+                        
+                        <!-- 1. Logo pequeno à esquerda com estilo direto (inline) -->
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                             alt="Logo"
+                             class="me-3"
+                             style="width: 100px; height: 100px; object-fit: contain; flex-shrink: 0;">
+                        
+                        <!-- 2. Nome da receita (ocupa o espaço disponível) -->
+                        <span class="fw-bold flex-grow-1">{{ recipe.nome }}</span>
+                        
+                        <!-- 3. Botões à direita com espaçamento -->
+                        <div class="d-flex gap-2">
+                            <!-- Botão "Ver" mais comprido e com efeito de realce -->
+                            <button class="btn btn-warning view-recipe-btn px-4" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#recipeModal" 
+                                    data-id="{{ recipe._id }}">
+                                Ver</button>
+                            <!-- Botão "Remover" com tamanho consistente -->
+                            <button class="btn btn-outline-danger remove-favorite-list-btn" 
+                                    data-id="{{ recipe._id }}" 
+                                    title="Remover">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16"><path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5-.03a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5"/></svg>
+                            </button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
     {% else %}
         <p class="lead" id="no-favorites-message">Você ainda não guardou nenhuma receita. Volte à página inicial e encontre uma que goste!</p>
     {% endif %}
@@ -45,7 +82,10 @@
                 <ol id="modal-instructions" class="ps-3"></ol>
             </div>
             <div class="modal-footer justify-content-between">
-                <button type="button" id="remove-favorite-btn" class="btn btn-outline-danger">Remover dos Favoritos</button>
+                <button type="button" id="remove-favorite-btn" class="btn btn-outline-danger d-flex align-items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16"><path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5-.03a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5"/></svg>
+                    <span>Remover dos Favoritos</span>
+                </button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
             </div>
         </div>
@@ -110,8 +150,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Evento que é disparado quando o modal está prestes a ser mostrado
     recipeModal.addEventListener('show.bs.modal', function (event) {
-        const linkElement = event.relatedTarget;
-        currentRecipeId = linkElement.dataset.id;
+        const triggerElement = event.relatedTarget; // O elemento que acionou o modal (botão 'Ver' ou a caixa)
+        currentRecipeId = triggerElement.dataset.id;
 
         // Encontra a receita correspondente no nosso objeto JavaScript
         const recipe = recipesData.find(r => r._id.$oid === currentRecipeId);
@@ -158,8 +198,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Adiciona eventos para os botões de remover na lista principal
     document.querySelectorAll('.remove-favorite-list-btn').forEach(button => {
         button.addEventListener('click', (event) => {
+            // Impede que o clique no botão se propague para a caixa
+            event.stopPropagation(); 
             const recipeId = event.currentTarget.dataset.id;
             removeRecipeFromFavorites(recipeId);
+        });
+    });
+
+    // Adiciona evento de clique para a caixa inteira
+    document.querySelectorAll('.recipe-card.clickable').forEach(card => {
+        card.addEventListener('click', function(event) {
+            // Verifica se o clique foi diretamente na caixa e não num botão dentro dela
+            if (event.target.closest('button')) {
+                return; // Se o clique foi num botão, não faz nada
+            }
+
+            // Se o clique foi na caixa, abre o modal manualmente
+            const recipeId = this.dataset.id;
+            const modalTriggerButton = this.querySelector(`.view-recipe-btn[data-id="${recipeId}"]`);
+            new bootstrap.Modal(recipeModal).show(modalTriggerButton);
         });
     });
 });

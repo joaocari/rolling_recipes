@@ -210,10 +210,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const searchBtn = document.getElementById('search-recipe-btn');
         const ingredient = ingredientInput.value.trim();
 
-        let apiUrl = '/api/recipe/random';
-        if (ingredient) {
-            apiUrl += `?ingredient=${encodeURIComponent(ingredient)}`;
+        // Validação: Verifica se o campo de ingrediente está vazio
+        if (!ingredient) {
+            // Define uma mensagem de erro personalizada
+            ingredientInput.setCustomValidity('Para filtrar, por favor preencha este campo.');
+            // Mostra a "bolha" de validação do navegador
+            ingredientInput.reportValidity();
+            // Limpa a mensagem de erro após um curto período para que o utilizador possa continuar
+            setTimeout(() => {
+                ingredientInput.setCustomValidity('');
+            }, 2000);
+            return; // Interrompe a execução se o campo estiver vazio
         }
+
+        let apiUrl = '/api/recipe/random';
+        apiUrl += `?ingredient=${encodeURIComponent(ingredient)}`;
         fetchAndDisplayRecipe(apiUrl, searchBtn);
     });
 
