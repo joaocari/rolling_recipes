@@ -5,78 +5,161 @@
 {% block content %}
 <h1 class="mb-4">Minhas Receitas Favoritas</h1>
 
-{% if recipes %}
-    <div class="row">
-        {% for recipe in recipes %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 shadow-sm" id="recipe-card-{{ recipe._id }}">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="card-title mb-0">{{ recipe.nome }}</h4>
-                        <!-- Botão para remover dos favoritos -->
-                        <button class="btn btn-link text-danger p-0 remove-favorite-btn" data-recipe-id="{{ recipe._id }}" title="Remover dos Favoritos">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16"><path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5-.03a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5"/></svg>
-                        </button>
-                    </div>
-                    <hr>
-                    <h6 class="text-muted">Ingredientes:</h6>
-                    <ul class="list-group list-group-flush mb-3">
-                        {% for ingredient in recipe.ingredientes %}
-                        <li class="list-group-item px-0">{{ ingredient }}</li>
-                        {% endfor %}
-                    </ul>
-                    <h6 class="text-muted">Passos:</h6>
-                    <!-- Renderiza as instruções como uma lista ordenada -->
-                    <ol class="ps-3">
-                        {% for step in recipe.instrucoes %}
-                        <li class="mb-1">{{ step }}</li>
-                        {% endfor %}
-                    </ol>
-                </div>
+<div id="favorites-list">
+    {% if recipes %}
+        <ul class="list-group">
+            {% for recipe in recipes %}
+            <li class="list-group-item d-flex justify-content-between align-items-center" id="recipe-item-{{ recipe._id }}">
+                <!-- Link para abrir o modal, agora ocupa o espaço disponível -->
+                <a href="#" class="text-decoration-none text-dark view-recipe-btn flex-grow-1" 
+                   data-bs-toggle="modal" 
+                   data-bs-target="#recipeModal"
+                   data-id="{{ recipe._id }}">
+                    {{ recipe.nome }}
+                </a>
+                <!-- Botão de remover diretamente na lista -->
+                <button class="btn btn-link text-danger p-0 ms-3 remove-favorite-list-btn" data-id="{{ recipe._id }}" title="Remover dos Favoritos">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16"><path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5-.03a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5"/></svg>
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="lead" id="no-favorites-message">Você ainda não guardou nenhuma receita. Volte à página inicial e encontre uma que goste!</p>
+    {% endif %}
+</div>
+
+<!-- Modal (Janela Flutuante) para exibir a receita -->
+<div class="modal fade" id="recipeModal" tabindex="-1" aria-labelledby="recipeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="recipeModalLabel">Nome da Receita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-muted">Ingredientes:</h6>
+                <ul id="modal-ingredients" class="list-group list-group-flush mb-3"></ul>
+                
+                <h6 class="text-muted mt-4">Passos:</h6>
+                <ol id="modal-instructions" class="ps-3"></ol>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" id="remove-favorite-btn" class="btn btn-outline-danger">Remover dos Favoritos</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
             </div>
         </div>
-        {% endfor %}
     </div>
-{% else %}
-    <p class="lead">Você ainda não guardou nenhuma receita. Volte à página inicial e encontre uma que goste!</p>
-{% endif %}
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+// Passa a lista completa de receitas do Flask (Python) para o JavaScript
+const recipesData = {{ recipes|tojson|safe }};
+
 document.addEventListener('DOMContentLoaded', function() {
-    const removeButtons = document.querySelectorAll('.remove-favorite-btn');
+    /**
+     * Função reutilizável para remover uma receita dos favoritos.
+     * @param {string} recipeId - O ID da receita a ser removida.
+     */
+    async function removeRecipeFromFavorites(recipeId) {
+        if (!confirm('Tem a certeza que quer remover esta receita dos favoritos?')) {
+            return;
+        }
 
-    removeButtons.forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const recipeId = event.currentTarget.dataset.recipeId;
-            
-            if (!recipeId) return;
+        try {
+            const response = await fetch('/api/user/favorites/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipe_id: recipeId })
+            });
 
-            // Confirmação opcional
-            if (!confirm('Tem a certeza que quer remover esta receita dos favoritos?')) {
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/user/favorites/remove', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ recipe_id: recipeId })
-                });
-
-                if (response.ok) {
-                    // Remove o cartão da receita da página para feedback imediato
-                    const cardToRemove = document.getElementById(`recipe-card-${recipeId}`).closest('.col-md-6');
-                    cardToRemove.remove();
-                } else {
-                    const result = await response.json();
-                    throw new Error(result.error || 'Não foi possível remover a receita.');
+            if (response.ok) {
+                // Fecha o modal se estiver aberto
+                const recipeModal = document.getElementById('recipeModal');
+                const modalInstance = bootstrap.Modal.getInstance(recipeModal);
+                if (modalInstance && modalInstance._isShown) {
+                    modalInstance.hide();
                 }
-            } catch (error) {
-                console.error('Erro ao remover favorito:', error);
-                alert(error.message);
+
+                // Remove o item da lista na página
+                const itemToRemove = document.getElementById(`recipe-item-${recipeId}`);
+                if (itemToRemove) {
+                    itemToRemove.remove();
+                }
+
+                // Verifica se a lista de favoritos ficou vazia e mostra a mensagem
+                const favoritesList = document.getElementById('favorites-list').querySelector('ul');
+                if (!favoritesList || favoritesList.children.length === 0) {
+                    document.getElementById('no-favorites-message').classList.remove('d-none');
+                }
+            } else {
+                const result = await response.json();
+                throw new Error(result.error || 'Não foi possível remover a receita.');
             }
+        } catch (error) {
+            console.error('Erro ao remover favorito:', error);
+            alert(error.message);
+        }
+    }
+
+    const recipeModal = document.getElementById('recipeModal');
+    const removeFavoriteBtn = document.getElementById('remove-favorite-btn');
+    let currentRecipeId = null;
+
+    // Evento que é disparado quando o modal está prestes a ser mostrado
+    recipeModal.addEventListener('show.bs.modal', function (event) {
+        const linkElement = event.relatedTarget;
+        currentRecipeId = linkElement.dataset.id;
+
+        // Encontra a receita correspondente no nosso objeto JavaScript
+        const recipe = recipesData.find(r => r._id.$oid === currentRecipeId);
+
+        if (!recipe) return; // Se não encontrar a receita, não faz nada
+
+        const name = recipe.nome || 'Receita sem nome';
+        const ingredients = recipe.ingredientes || [];
+        const instructions = recipe.instrucoes || [];
+
+        // Preenche o conteúdo do modal
+        const modalTitle = recipeModal.querySelector('.modal-title');
+        const modalIngredients = recipeModal.querySelector('#modal-ingredients');
+        const modalInstructions = recipeModal.querySelector('#modal-instructions');
+
+        modalTitle.textContent = name;
+
+        // Limpa e preenche os ingredientes
+        modalIngredients.innerHTML = '';
+        ingredients.forEach(ing => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item px-0';
+            li.textContent = ing;
+            modalIngredients.appendChild(li);
+        });
+
+        // Limpa e preenche as instruções
+        modalInstructions.innerHTML = '';
+        instructions.forEach(step => {
+            const li = document.createElement('li');
+            li.className = 'mb-1';
+            li.textContent = step;
+            modalInstructions.appendChild(li);
+        });
+    });
+
+    // Evento para o botão de remover dentro do modal
+    removeFavoriteBtn.addEventListener('click', async () => {
+        if (currentRecipeId) {
+            removeRecipeFromFavorites(currentRecipeId);
+        }
+    });
+
+    // Adiciona eventos para os botões de remover na lista principal
+    document.querySelectorAll('.remove-favorite-list-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const recipeId = event.currentTarget.dataset.id;
+            removeRecipeFromFavorites(recipeId);
         });
     });
 });
