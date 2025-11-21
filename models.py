@@ -12,6 +12,7 @@ class User(UserMixin):
         """
         self.id = str(user_data.get('_id'))
         self.username = user_data.get('username')
+        self.email = user_data.get('email')
         # Carrega a lista de favoritos, que são ObjectIds
         self.favorites = user_data.get('favorites', [])
 

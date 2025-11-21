@@ -4,31 +4,15 @@
 
 {% block content %}
 <div class="text-center my-5">
+    <!-- Título Principal -->
     <h1 class="display-4">A sua próxima receita favorita</h1>
-    <p class="lead">Não sabe o que cozinhar? Clique no botão abaixo e nós damos-lhe uma ideia!</p>
-    <button id="get-recipe-btn" class="btn btn-primary btn-lg mt-3">
-        Encontrar Receita!
-    </button>
 
-    <!-- Texto explicativo e formulário de busca por ingrediente -->
-    <div class="mt-5">
-        <p class="lead">Quer afinar o resultado? Escreva um ingrediente e sorteamos apenas receitas que o tenham.</p>
-        <form id="search-form" class="mt-3">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="input-group">
-                        <input type="text" id="ingredient-input" class="form-control" placeholder="Ex: queijo, frango, chocolate..." pattern="[A-Za-zÀ-ú\s-]+" title="Por favor, use apenas letras, espaços e hífens.">
-                        <button id="search-recipe-btn" class="btn btn-warning" type="submit">Filtrar e Sortear</button>
-                    </div>
-                </div>
-            </div>
-        </form>
+    <!-- Container para a animação Lottie do dado (agora posicionado aqui) -->
+    <div id="lottie-loader" class="d-none mt-4" 
+         style="max-width: 400px; margin: 0 auto;">
+        <lottie-player src="{{ url_for('static', filename='dice_6.json') }}" background="transparent" speed="1" loop autoplay />
     </div>
-</div>
 
-<!-- Container para a animação Lottie do dado -->
-<div id="lottie-loader" class="lottie-container d-none">
-    <lottie-player src="{{ url_for('static', filename='dice_6.json') }}" background="transparent" speed="1" loop autoplay />
 </div>
 
 <!-- Área para exibir mensagens (ex: nenhuma receita encontrada) -->
@@ -57,6 +41,28 @@
         </div>
     </div>
 </div>
+
+<!-- Container para os controlos, agora posicionado no final -->
+<div id="initial-controls" class="text-center my-5">
+    <p class="lead mt-3">Não sabe o que cozinhar? Clique no botão abaixo e nós damos-lhe uma ideia!</p>
+    <button id="get-recipe-btn" class="btn btn-primary btn-lg mt-3">
+        Encontrar Receita!
+    </button>
+    <div class="mt-5">
+        <p class="lead">Quer afinar o resultado? Escreva um ingrediente e sorteamos apenas receitas que o tenham.</p>
+        <form id="search-form" class="mt-3">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <div class="input-group">
+                        <input type="text" id="ingredient-input" class="form-control" placeholder="Ex: queijo, frango..." pattern="[A-Za-zÀ-ú\s-]+" title="Por favor, use apenas letras, espaços e hífens." maxlength="20">
+                        <button id="search-recipe-btn" class="btn btn-warning" type="submit">Filtrar e Sortear</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -105,10 +111,10 @@ async function fetchAndDisplayRecipe(apiUrl, triggerButton) {
     const lottieLoader = document.getElementById('lottie-loader');
     const messageDisplay = document.getElementById('message-display');
 
-    // Esconde resultados anteriores e mostra a animação
+    // Esconde tudo e mostra a animação
     recipeDisplay.classList.add('d-none');
     messageDisplay.classList.add('d-none');
-    lottieLoader.classList.remove('d-none');
+    lottieLoader.classList.remove('d-none'); // Mostra a animação
     
     // Desativa ambos os botões para prevenir múltiplos cliques
     document.getElementById('get-recipe-btn').disabled = true;
@@ -146,6 +152,9 @@ async function fetchAndDisplayRecipe(apiUrl, triggerButton) {
         lottieLoader.classList.add('d-none');
         recipeDisplay.classList.remove('d-none');
         recipeDisplay.classList.add('fade-in');
+        
+        // Rola a página suavemente para a receita encontrada
+        recipeDisplay.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     } catch (error) {
         console.error('Erro ao buscar receita:', error);
@@ -210,10 +219,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const searchBtn = document.getElementById('search-recipe-btn');
         const ingredient = ingredientInput.value.trim();
 
-        let apiUrl = '/api/recipe/random';
-        if (ingredient) {
-            apiUrl += `?ingredient=${encodeURIComponent(ingredient)}`;
+        // Validação: Verifica se o campo de ingrediente está vazio
+        if (!ingredient) {
+            // Define uma mensagem de erro personalizada
+            ingredientInput.setCustomValidity('Para filtrar, por favor preencha este campo.');
+            // Mostra a "bolha" de validação do navegador
+            ingredientInput.reportValidity();
+            // Limpa a mensagem de erro após um curto período para que o utilizador possa continuar
+            setTimeout(() => {
+                ingredientInput.setCustomValidity('');
+            }, 2000);
+            return; // Interrompe a execução se o campo estiver vazio
         }
+
+        let apiUrl = '/api/recipe/random';
+        apiUrl += `?ingredient=${encodeURIComponent(ingredient)}`;
         fetchAndDisplayRecipe(apiUrl, searchBtn);
     });
 
