@@ -275,7 +275,8 @@ def get_recipes():
 # This block only runs when you execute `python data/seed_data.py` directly.
 if __name__ == '__main__':
     # --- MongoDB Configuration ---
-    MONGO_URI = "mongodb://localhost:27017/"
+    # COLOQUE A SUA STRING DE CONEXÃO ONLINE AQUI, COM A PASSWORD CORRETA
+    MONGO_URI = "mongodb+srv://olatvcasa:abKdpjPB6dr7lcY@rollingrecipes.dkqabli.mongodb.net/rolling_recipes_db?retryWrites=true&w=majority/"
     DB_NAME = "rolling_recipes_db"
     COLLECTION_NAME = "receitas"
 
