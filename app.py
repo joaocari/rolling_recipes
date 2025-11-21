@@ -5,7 +5,7 @@ from flask_login import LoginManager, login_required, current_user
 from bson import ObjectId
 from bson.json_util import dumps
 import random
-import os
+import os, re
 
 # Importa o Blueprint de autenticação
 from auth import auth_bp
@@ -66,6 +66,45 @@ def favorites():
 
     return render_template('favorites.html', recipes=favorite_recipes)
 
+# Rota para a página de sugestões de receitas
+@app.route('/suggestions')
+@login_required # Garante que apenas utilizadores autenticados podem aceder
+def suggestions():
+    """Renderiza a página com o formulário de sugestão de receitas."""
+    return render_template('suggestions.html')
+
+# Rota da API para receber uma nova sugestão de receita
+@app.route('/api/suggestions/add', methods=['POST'])
+@login_required
+def add_suggestion():
+    """
+    Recebe os dados do formulário de sugestão e guarda-os numa nova coleção.
+    """
+    data = request.get_json()
+
+    # Validação simples dos dados recebidos
+    if not data or not data.get('nome') or not data.get('ingredientes') or not data.get('instrucoes'):
+        return jsonify({"error": "Os campos Nome, Ingredientes e Instruções são obrigatórios."}), 400
+
+    # Cria o documento para ser inserido na base de dados
+    suggestion_doc = {
+        "nome": data.get('nome'),
+        "categoria": data.get('categoria'),
+        "dificuldade": data.get('dificuldade'),
+        "tempo_preparo": data.get('tempo_preparo'),
+        # Otimização: divide por vírgula ou quebra de linha, remove espaços e itens vazios.
+        "ingredientes": [item.strip() for item in re.split(r'[,\n]+', data.get('ingredientes')) if item.strip()],
+        "instrucoes": [item.strip() for item in re.split(r'[,\n]+', data.get('instrucoes')) if item.strip()],
+        "link_receita": data.get('link_receita', ''), # Campo opcional
+        "sugerido_por": current_user.username, # Guarda quem sugeriu
+        "status": "pendente" # Status inicial
+    }
+
+    # Insere o documento na nova coleção 'sugestoes'
+    mongo.db.sugestoes.insert_one(suggestion_doc)
+
+    return jsonify({"message": "Sugestão enviada com sucesso! Obrigado pela sua contribuição."}), 201
+
 # Rota da API para obter uma receita aleatória
 @app.route('/api/recipe/random')
 def get_random_recipe():
@@ -110,6 +149,10 @@ def add_favorite():
 
     if not recipe_id:
         return jsonify({"error": "ID da receita em falta."}), 400
+
+    # Verifica se o utilizador já atingiu o limite de 40 receitas favoritas
+    if len(current_user.favorites) >= 40:
+        return jsonify({"error": "Limite de 40 receitas favoritas atingido! Remova uma para poder adicionar outra."}), 400
 
     # Adiciona o ObjectId da receita ao array 'favorites' do utilizador
     # O operador $addToSet previne que a mesma receita seja adicionada várias vezes
