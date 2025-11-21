@@ -140,8 +140,9 @@ def get_random_recipe():
     if not random_recipe_list:
         # Se a lista estiver vazia, retorna um erro.
         error_message = f"Nenhuma receita encontrada com o ingrediente '{ingredient}'." if ingredient else "Nenhuma receita encontrada na base de dados."
-        return jsonify({"error": error_message}), 404
+        return jsonify({"error": error_message}), 404 # A função deve parar aqui
 
+    # Esta parte só é executada se a lista não estiver vazia
     recipe = random_recipe_list[0]
 
     # dumps converte o formato do MongoDB (BSON) para JSON
