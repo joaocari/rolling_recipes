@@ -17,11 +17,18 @@ app = Flask(__name__,
             template_folder='frontend')  # A pasta 'frontend' contém os templates HTML
 
 # Chave secreta para a gestão de sessões (necessária para o Flask-Login)
-app.config['SECRET_KEY'] = 'uma-chave-secreta-muito-segura-e-dificil-de-adivinhar'
+# É recomendado usar uma variável de ambiente para a chave secreta em produção
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'uma-chave-secreta-muito-segura-e-dificil-de-adivinhar')
 
 #--- Configuração do MongoDB ---
-#Altere a URI se a sua base de dados não estiver local
-app.config["MONGO_URI"] = "mongodb://localhost:27017/rolling_recipes_db"
+# Em produção, a URI deve vir de uma variável de ambiente para segurança.
+mongo_uri = os.environ.get('MONGO_URI')
+if not mongo_uri:
+    # Fallback para a base de dados local se a variável de ambiente não estiver definida
+    app.config["MONGO_URI"] = "mongodb://localhost:27017/rolling_recipes_db"
+else:
+    app.config["MONGO_URI"] = mongo_uri
+
 mongo = PyMongo()
 mongo.init_app(app)
 
