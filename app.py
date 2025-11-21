@@ -158,8 +158,12 @@ def add_favorite():
     if not recipe_id:
         return jsonify({"error": "ID da receita em falta."}), 400
 
+    # Recarrega os dados do utilizador para garantir que a lista de favoritos está atualizada
+    user_doc = mongo.db.users.find_one({"_id": ObjectId(current_user.id)})
+    user_favorites = user_doc.get('favorites', [])
+
     # Verifica se o utilizador já atingiu o limite de 40 receitas favoritas
-    if len(current_user.favorites) >= 40:
+    if len(user_favorites) >= 40:
         return jsonify({"error": "Limite de 40 receitas favoritas atingido! Remova uma para poder adicionar outra."}), 400
 
     # Adiciona o ObjectId da receita ao array 'favorites' do utilizador
@@ -184,10 +188,14 @@ def remove_favorite():
     if not recipe_id:
         return jsonify({"error": "ID da receita em falta."}), 400
 
+    # Recarrega os dados do utilizador para garantir que a lista de favoritos está atualizada
+    user_doc = mongo.db.users.find_one({"_id": ObjectId(current_user.id)})
+    user_favorites = user_doc.get('favorites', [])
+
     # Remove o ObjectId da receita do array 'favorites' do utilizador
     # O operador $pull remove todas as instâncias do valor do array
     result = mongo.db.users.update_one(
-        {"_id": ObjectId(current_user.id)},
+        {"_id": ObjectId(current_user.id)}, # A condição da busca continua a ser o ID do utilizador
         {"$pull": {"favorites": ObjectId(recipe_id)}}
     )
 
