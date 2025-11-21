@@ -90,7 +90,7 @@
 {% block scripts %}
 <script>
 // Passa a lista completa de receitas do Flask (Python) para o JavaScript
-const recipesData = {{ (recipes or [])|tojson|safe }};
+const recipesData = {{ recipes|tojson|safe if recipes else '[]' }};
 
 document.addEventListener('DOMContentLoaded', function() {
     /**
