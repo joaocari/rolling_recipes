@@ -11,12 +11,6 @@
     .recipe-card.clickable {
         cursor: pointer;
     }
-    /* Efeito de realce para o botão "Ver" */
-    .btn-warning.view-recipe-btn:hover {
-        background-color: #ffab00; /* Um tom de laranja mais escuro */
-        border-color: #ff9f00;
-        transform: scale(1.05); /* Aumenta ligeiramente o botão */
-    }
 </style>
 {% endblock %}
 
@@ -36,7 +30,7 @@
                         <img src="{{ url_for('static', filename='images/logo.png') }}" 
                              alt="Logo"
                              class="me-3"
-                             style="width: 100px; height: 100px; object-fit: contain; flex-shrink: 0;">
+                             style="width: 45px; height: 45px; object-fit: contain; flex-shrink: 0;">
                         
                         <!-- 2. Nome da receita (ocupa o espaço disponível) -->
                         <span class="fw-bold flex-grow-1">{{ recipe.nome }}</span>
@@ -96,7 +90,7 @@
 {% block scripts %}
 <script>
 // Passa a lista completa de receitas do Flask (Python) para o JavaScript
-const recipesData = {{ recipes|tojson|safe }};
+const recipesData = {{ (recipes or [])|tojson|safe }};
 
 document.addEventListener('DOMContentLoaded', function() {
     /**
