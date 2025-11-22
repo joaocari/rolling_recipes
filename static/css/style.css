@@ -49,12 +49,12 @@ main {
     border: none;
 }
 
-.btn-primary {
+.btn-warning {
     background-color: var(--primary-accent);
     border-color: var(--primary-accent);
 }
 
-.btn-primary:hover {
+.btn-warning:hover {
     background-color: #c75a2a;
     border-color: #c75a2a;
 }
