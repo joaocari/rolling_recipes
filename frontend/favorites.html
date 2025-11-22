@@ -89,9 +89,10 @@
 
 {% block scripts %}
 <script>
-// A variável 'recipes' que vem do Python é convertida para um objeto JavaScript.
-// O filtro 'tojson' do Jinja2 sabe como lidar com o ObjectId, resolvendo o erro.
-const recipesData = {{ recipes|tojson|safe }};
+// A variável 'recipes_json' vem do Python como uma string JSON já preparada.
+// Usamos JSON.parse() para convertê-la num objeto JavaScript utilizável.
+// O filtro 'safe' é crucial para garantir que o HTML não escape as aspas da string.
+const recipesData = JSON.parse('{{ recipes_json|safe }}');
 
 document.addEventListener('DOMContentLoaded', function() {
     /**
@@ -149,8 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentRecipeId = triggerElement.dataset.id;
 
         // Encontra a receita correspondente no nosso objeto JavaScript
-        // O 'tojson' converte o ObjectId para um objeto {$oid: "..."}
-        const recipe = recipesData.find(r => r._id && r._id.$oid === currentRecipeId);
+        const recipe = recipesData.find(r => r._id === currentRecipeId);
 
         if (!recipe) return; // Se não encontrar a receita, não faz nada
 

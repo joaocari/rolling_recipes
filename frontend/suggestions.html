@@ -100,34 +100,30 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.textContent = 'Enviar Sugestão';
             return;
         }
+
         try {
             const response = await fetch('/api/suggestions/add', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             });
 
             const result = await response.json();
 
-            // Mostra a mensagem de feedback
-            messageDisplay.textContent = result.message || result.error;
-            messageDisplay.classList.remove('d-none', 'alert-danger', 'alert-success');
-
             if (response.ok) {
-                messageDisplay.classList.add('alert-success');
-                form.reset(); // Limpa o formulário em caso de sucesso
+                // SUCESSO: A API respondeu com um status 2xx.
+                alert("Obrigado pela sua contribuição! A sua sugestão foi enviada com sucesso.");
+                form.reset(); // Limpa o formulário.
             } else {
-                messageDisplay.classList.add('alert-danger');
-                throw new Error(result.error);
+                // ERRO DA API: A API respondeu com um erro (ex: 400, 500).
+                // Mostra a mensagem de erro específica vinda do servidor.
+                alert(result.error || 'Não foi possível enviar a sugestão. Verifique os dados e tente novamente.');
             }
 
         } catch (error) {
+            // ERRO DE REDE: O fetch falhou (ex: sem internet).
             console.error('Erro ao enviar sugestão:', error);
-            messageDisplay.textContent = 'Ocorreu um erro de comunicação. Tente novamente.';
-            messageDisplay.classList.remove('d-none');
-            messageDisplay.classList.add('alert-danger');
+            alert('Ocorreu um erro de comunicação. Por favor, verifique a sua ligação e tente novamente.');
         } finally {
             // Reativa o botão
             submitButton.disabled = false;
