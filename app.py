@@ -72,8 +72,14 @@ def favorites():
             "_id": {"$in": favorite_ids}
         }))
 
-    # A lista de receitas é enviada diretamente para o template. O |tojson no HTML tratará da conversão.
-    return render_template('favorites.html', recipes=favorite_recipes)
+    # 1. Converte a lista de receitas para uma string JSON que o JavaScript entende.
+    #    O dumps da BSON lida corretamente com ObjectId e outros tipos do MongoDB.
+    recipes_json_string = dumps(favorite_recipes)
+
+    # 2. Passa tanto a lista original (para o loop do Jinja2 que cria a lista)
+    #    quanto a string JSON (para o script JavaScript que abre o modal) para o template.
+    return render_template('favorites.html', recipes=favorite_recipes, recipes_json=recipes_json_string)
+
 
 # Rota para a página de sugestões de receitas
 @app.route('/suggestions')
