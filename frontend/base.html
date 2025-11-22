@@ -42,12 +42,17 @@
             color: #000;
             background-color: #ffc107; /* Cor amarela/laranja do tema */
         }
-        /* --- Correção da Cor do Botão Amarelo --- */
-        /* Garante que a cor de fundo e da borda do btn-warning seja sempre a correta,
-           sobrepondo-se a outras regras que possam estar a interferir. */
-        .btn-warning {
-            background-color: #ffc107 !important;
-            border-color: #ffc107 !important;
+        /* --- Estilo Corrigido para Botões Amarelos --- */
+        /* Define a cor base e restaura os efeitos de interação (hover/clique) */
+        .btn-warning, .btn-warning:focus {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #000; /* Garante que o texto seja preto */
+            box-shadow: none; /* Remove a sombra azul do clique para um efeito mais limpo */
+        }
+        .btn-warning:hover {
+            background-color: #ffca2c; /* Um amarelo ligeiramente mais claro ao passar o rato */
+            border-color: #ffc107;
         }
     </style>
 </head>
