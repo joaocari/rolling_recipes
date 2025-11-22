@@ -149,8 +149,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const triggerElement = event.relatedTarget; // O elemento que acionou o modal (botão 'Ver' ou a caixa)
         currentRecipeId = triggerElement.dataset.id;
 
-        // Encontra a receita correspondente no nosso objeto JavaScript
-        const recipe = recipesData.find(r => r._id === currentRecipeId);
+        // CORREÇÃO: O JavaScript precisa de comparar a string do ID (currentRecipeId)
+        // com o valor dentro do objeto _id.$oid que vem do JSON.
+        // A expressão `r._id && r._id.$oid` garante que o código não quebra se o formato mudar.
+        const recipe = recipesData.find(r => r._id && r._id.$oid === currentRecipeId);
 
         if (!recipe) return; // Se não encontrar a receita, não faz nada
 
