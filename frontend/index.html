@@ -144,10 +144,10 @@ async function fetchAndDisplayRecipe(apiUrl, triggerButton) {
         }
 
         const recipe = data;
-        // A abordagem correta: O servidor deve enviar o _id como uma string simples.
-        // O JavaScript não precisa de saber sobre a estrutura interna do MongoDB ($oid).
-        // Esta alteração assume que a sua API foi corrigida para usar bson.json_util.dumps.
-        currentRecipeId = recipe._id;
+        // CORREÇÃO: O `dumps` do BSON envia o ID como um objeto `{$oid: "string"}`.
+        // O JavaScript precisa de extrair apenas a string de dentro desse objeto.
+        // Se `recipe._id` for uma string (vindo de uma API já corrigida), isto também funciona.
+        currentRecipeId = recipe._id.$oid || recipe._id;
 
         // Preenche os dados da receita
         document.getElementById('recipe-title').textContent = recipe.nome;
