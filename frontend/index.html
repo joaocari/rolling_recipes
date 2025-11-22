@@ -67,8 +67,11 @@
 
 {% block scripts %}
 <script>
-// Passa o estado de autenticação do Flask para o JavaScript
-const isAuthenticated = {{ current_user.is_authenticated|tojson|safe }};
+// Abordagem robusta: Lê o estado de autenticação a partir de um atributo de dados no body.
+// Isto evita erros de renderização do Jinja e separa o HTML do JavaScript.
+// O valor 'true' (string) é convertido para true (booleano).
+const isAuthenticated = document.body.dataset.isAuthenticated === 'true';
+
 let currentRecipeId = null;
 
 /**
@@ -141,7 +144,10 @@ async function fetchAndDisplayRecipe(apiUrl, triggerButton) {
         }
 
         const recipe = data;
-        currentRecipeId = recipe._id.$oid;
+        // A abordagem correta: O servidor deve enviar o _id como uma string simples.
+        // O JavaScript não precisa de saber sobre a estrutura interna do MongoDB ($oid).
+        // Esta alteração assume que a sua API foi corrigida para usar bson.json_util.dumps.
+        currentRecipeId = recipe._id;
 
         // Preenche os dados da receita
         document.getElementById('recipe-title').textContent = recipe.nome;
