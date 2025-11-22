@@ -42,18 +42,22 @@
             color: #000;
             background-color: #ffc107; /* Cor amarela/laranja do tema */
         }
-        /* --- Estilo Corrigido para Botões Amarelos --- */
-        /* Define a cor base e restaura os efeitos de interação (hover/clique) */
-        .btn-warning, .btn-warning:focus {
+        /* --- ESTILO PERSONALIZADO PARA BOTÕES AMARELOS COM CLIQUE AZUL --- */
+        
+        /* 1. Define a cor amarela base e garante que o texto é preto */
+        .btn-warning {
             background-color: #ffc107;
             border-color: #ffc107;
-            color: #000; /* Garante que o texto seja preto */
-            box-shadow: none; /* Remove a sombra azul do clique para um efeito mais limpo */
+            color: #000;
         }
-        .btn-warning:hover {
-            background-color: #ffca2c; /* Um amarelo ligeiramente mais claro ao passar o rato */
-            border-color: #ffc107;
+
+        /* 2. Ao clicar (estado :active), o botão fica azul */
+        .btn-warning:active {
+            background-color: hsl(211, 90%, 50%); /* Azul claro do Bootstrap (cor 'info') */
+            border-color: hsl(211, 90%, 50%);
+            color: #000; /* O texto fica preto para melhor contraste no fundo claro */
         }
+
     </style>
 </head>
 <!-- 
