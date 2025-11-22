@@ -27,7 +27,8 @@ if not mongo_uri:
     # Fallback para a base de dados local se a variável de ambiente não estiver definida
     app.config["MONGO_URI"] = "mongodb://localhost:27017/rolling_recipes_db"
 else:
-    app.config["MONGO_URI"] = mongo_uri
+    # Limpa a string de conexão para remover espaços ou quebras de linha acidentais
+    app.config["MONGO_URI"] = mongo_uri.strip()
 
 mongo = PyMongo()
 mongo.init_app(app)
@@ -71,6 +72,7 @@ def favorites():
             "_id": {"$in": favorite_ids}
         }))
 
+    # A lista de receitas é enviada diretamente para o template. O |tojson no HTML tratará da conversão.
     return render_template('favorites.html', recipes=favorite_recipes)
 
 # Rota para a página de sugestões de receitas

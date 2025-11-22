@@ -68,7 +68,7 @@
 {% block scripts %}
 <script>
 // Passa o estado de autenticação do Flask para o JavaScript
-const isAuthenticated = {{ current_user.is_authenticated|tojson }};
+const isAuthenticated = {{ current_user.is_authenticated|tojson|safe }};
 let currentRecipeId = null;
 
 /**

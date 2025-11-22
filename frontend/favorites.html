@@ -17,7 +17,7 @@
 {% block content %}
 <h1 class="mb-4 text-center">Minhas Receitas Favoritas</h1>
 <div id="favorites-list">
-    {% if recipes %}
+    {% if recipes and recipes|length > 0 %}
         <div class="row">
             <!-- Limita a largura da lista em ecrãs médios e grandes -->
             <div class="col-12 col-md-10 offset-md-1 col-lg-8 offset-lg-2">
@@ -89,8 +89,9 @@
 
 {% block scripts %}
 <script>
-// Passa a lista completa de receitas do Flask (Python) para o JavaScript
-const recipesData = {{ recipes|tojson|safe if recipes else '[]' }};
+// A variável 'recipes' que vem do Python é convertida para um objeto JavaScript.
+// O filtro 'tojson' do Jinja2 sabe como lidar com o ObjectId, resolvendo o erro.
+const recipesData = {{ recipes|tojson|safe }};
 
 document.addEventListener('DOMContentLoaded', function() {
     /**
@@ -148,7 +149,8 @@ document.addEventListener('DOMContentLoaded', function() {
         currentRecipeId = triggerElement.dataset.id;
 
         // Encontra a receita correspondente no nosso objeto JavaScript
-        const recipe = recipesData.find(r => r._id.$oid === currentRecipeId);
+        // O 'tojson' converte o ObjectId para um objeto {$oid: "..."}
+        const recipe = recipesData.find(r => r._id && r._id.$oid === currentRecipeId);
 
         if (!recipe) return; // Se não encontrar a receita, não faz nada
 
