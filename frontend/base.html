@@ -42,6 +42,13 @@
             color: #000;
             background-color: #ffc107; /* Cor amarela/laranja do tema */
         }
+        /* --- Correção da Cor do Botão Amarelo --- */
+        /* Garante que a cor de fundo e da borda do btn-warning seja sempre a correta,
+           sobrepondo-se a outras regras que possam estar a interferir. */
+        .btn-warning {
+            background-color: #ffc107 !important;
+            border-color: #ffc107 !important;
+        }
     </style>
 </head>
 <!-- 
