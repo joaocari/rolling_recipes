@@ -123,6 +123,9 @@ async function fetchAndDisplayRecipe(apiUrl, triggerButton) {
     document.getElementById('get-recipe-btn').disabled = true;
     document.getElementById('search-recipe-btn').disabled = true;
     triggerButton.textContent = 'A sortear...';
+    
+    // ADICIONA A CLASSE PARA MUDAR A COR PARA AZUL
+    triggerButton.classList.add('is-sorting');
 
     try {
         // Garante que a animação seja visível por um tempo mínimo
@@ -172,6 +175,9 @@ async function fetchAndDisplayRecipe(apiUrl, triggerButton) {
         document.getElementById('get-recipe-btn').disabled = false;
         document.getElementById('search-recipe-btn').disabled = false;
         triggerButton.textContent = originalButtonText;
+
+        // REMOVE A CLASSE PARA O BOTÃO VOLTAR AO AMARELO NORMAL
+        triggerButton.classList.remove('is-sorting');
     }
 }
 
