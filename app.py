@@ -12,9 +12,10 @@ from auth import auth_bp
 from models import User
 
 # Cria a aplicação Flask
+# O Flask procura automaticamente uma pasta chamada 'static' no mesmo nível.
+# Apenas precisamos de especificar que a pasta de templates se chama 'frontend'.
 app = Flask(__name__,
-            static_folder='static',
-            template_folder='frontend')  # A pasta 'frontend' contém os templates HTML
+            template_folder='frontend')
 
 # Chave secreta para a gestão de sessões (necessária para o Flask-Login)
 # É recomendado usar uma variável de ambiente para a chave secreta em produção
