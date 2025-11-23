@@ -18,7 +18,7 @@
         <form id="suggestion-form" class="form-container shadow-sm">
             <div class="mb-3">
                 <label for="nome" class="form-label">Nome da Receita</label>
-                <input type="text" class="form-control" id="nome" name="nome" required>
+                <input type="text" class="form-control" id="nome" name="nome" required maxlength="100">
             </div>
 
             <div class="row">
@@ -51,25 +51,25 @@
                 </div>
                 <div class="col-md-4 mb-3">
                     <label for="tempo_preparo" class="form-label">Tempo de Preparo</label>
-                    <input type="text" class="form-control" id="tempo_preparo" name="tempo_preparo" placeholder="Ex: 45 min">
+                    <input type="text" class="form-control" id="tempo_preparo" name="tempo_preparo" placeholder="Ex: 45 min" maxlength="20">
                 </div>
             </div>
 
             <div class="mb-3">
                 <label for="ingredientes" class="form-label">Ingredientes</label>
-                <textarea class="form-control auto-growing-textarea" id="ingredientes" name="ingredientes" rows="4" placeholder="Ex:&#10;2 ovos&#10;50ml de leite&#10;Sal e pimenta a gosto&#10;1 colher de sopa de manteiga" required></textarea>
-                <div class="form-text">Pode colar uma lista de ingredientes aqui. Coloque um por linha.</div>
+                <textarea class="form-control auto-growing-textarea" id="ingredientes" name="ingredientes" rows="4" placeholder="Um ingrediente por linha, por exemplo:&#10;2 ovos&#10;50ml de leite&#10;Sal e pimenta a gosto" required></textarea>
+                <div class="form-text">Pode colar uma lista de ingredientes. Separe-os por linha ou por vírgula.</div>
             </div>
 
             <div class="mb-3">
                 <label for="instrucoes" class="form-label">Instruções</label>
-                <textarea class="form-control auto-growing-textarea" id="instrucoes" name="instrucoes" rows="6" placeholder="Ex:&#10;Passo 1: Bata os ovos com o leite numa tigela.&#10;Passo 2: Tempere com sal e pimenta.&#10;Passo 3: Aqueça a manteiga numa frigideira em lume médio." required></textarea>
-                <div class="form-text">Pode colar os passos da receita aqui. Coloque um por linha.</div>
+                <textarea class="form-control auto-growing-textarea" id="instrucoes" name="instrucoes" rows="6" placeholder="Um passo por linha, por exemplo:&#10;1. Bata os ovos com o leite.&#10;2. Tempere com sal e pimenta.&#10;3. Aqueça a manteiga numa frigideira." required></textarea>
+                <div class="form-text">Pode colar os passos da receita. Separe-os por linha ou por vírgula.</div>
             </div>
 
             <div class="mb-4">
                 <label for="link_receita" class="form-label">Link da Receita (Opcional)</label>
-                <input type="url" class="form-control" id="link_receita" name="link_receita" placeholder="https://exemplo.com/receita">
+                <input type="url" class="form-control" id="link_receita" name="link_receita" placeholder="https://exemplo.com/receita" maxlength="500">
             </div>
 
             <div class="d-grid">

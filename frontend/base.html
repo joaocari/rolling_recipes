@@ -33,8 +33,13 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <!-- Adicionado 'align-items-center' para melhor alinhamento vertical em ecrãs maiores -->
+                <ul class="navbar-nav ms-auto align-items-center">
                     {% if current_user.is_authenticated %}
+                        <!-- Saudação personalizada para o utilizador -->
+                        <li class="nav-item">
+                            <span class="nav-link user-greeting">Olá, {{ current_user.username }}</span>
+                        </li>
                         <!-- Links para utilizador autenticado -->
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('favorites') }}">Receitas Favoritas</a>

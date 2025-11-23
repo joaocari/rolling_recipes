@@ -81,10 +81,19 @@ let currentRecipeId = null;
 function populateIngredients(ingredients) {
     const ingredientsList = document.getElementById('recipe-ingredients');
     ingredientsList.innerHTML = ''; // Limpa a lista anterior
-    ingredients.forEach(ing => {
+    ingredients.forEach(ingredient => {
         const li = document.createElement('li');
         li.className = 'list-group-item';
-        li.textContent = ing;
+
+        // Lógica de retrocompatibilidade: verifica se o ingrediente é um objeto (novo formato) ou uma string (formato antigo)
+        if (typeof ingredient === 'object' && ingredient !== null && ingredient.nome) {
+            // Novo formato: {quantidade: "100g", nome: "de farinha"}
+            const quantity = ingredient.quantidade ? `${ingredient.quantidade} ` : '';
+            li.textContent = `${quantity}${ingredient.nome}`;
+        } else {
+            // Formato antigo: "100g de farinha" (é uma string)
+            li.textContent = ingredient;
+        }
         ingredientsList.appendChild(li);
     });
 }

@@ -57,6 +57,16 @@ h1, .display-4 {
     background-color: #ffc107; /* Cor amarela/laranja do tema */
 }
 
+/* Estilo para a saudação ao utilizador na barra de navegação */
+.user-greeting {
+    font-weight: 600; /* Torna o texto um pouco mais destacado */
+    cursor: default; /* Remove o cursor de link (mãozinha) */
+    color: var(--dark-text) !important; /* Garante a cor correta */
+}
+.user-greeting:hover {
+    background-color: transparent !important; /* Impede a mudança de cor no hover */
+}
+
 /* Cartões e Botões */
 .card {
     border: none;

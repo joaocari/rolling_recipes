@@ -11,6 +11,13 @@
     .recipe-card.clickable {
         cursor: pointer;
     }
+    /* Garante que o nome da receita não quebra o layout */
+    .recipe-name {
+        white-space: nowrap;      /* Impede a quebra de linha */
+        overflow: hidden;         /* Esconde o texto que transborda */
+        text-overflow: ellipsis;  /* Adiciona "..." ao final */
+        flex-grow: 1;             /* Ocupa o espaço disponível */
+    }
 </style>
 {% endblock %}
 
@@ -32,8 +39,8 @@
                              class="me-3"
                              style="width: 45px; height: 45px; object-fit: contain; flex-shrink: 0;">
                         
-                        <!-- 2. Nome da receita (ocupa o espaço disponível) -->
-                        <span class="fw-bold flex-grow-1">{{ recipe.nome }}</span>
+                        <!-- 2. Nome da receita (com tooltip para nomes compridos) -->
+                        <span class="fw-bold recipe-name" title="{{ recipe.nome }}">{{ recipe.nome }}</span>
                         
                         <!-- 3. Botões à direita com espaçamento -->
                         <div class="d-flex gap-2">
@@ -169,10 +176,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Limpa e preenche os ingredientes
         modalIngredients.innerHTML = '';
-        ingredients.forEach(ing => {
+        ingredients.forEach(ingredient => {
             const li = document.createElement('li');
             li.className = 'list-group-item px-0';
-            li.textContent = ing;
+            
+            // Lógica de retrocompatibilidade (igual à da página inicial)
+            if (typeof ingredient === 'object' && ingredient !== null && ingredient.nome) {
+                const quantity = ingredient.quantidade ? `${ingredient.quantidade} ` : '';
+                li.textContent = `${quantity}${ingredient.nome}`;
+            } else {
+                li.textContent = ingredient;
+            }
             modalIngredients.appendChild(li);
         });
 
