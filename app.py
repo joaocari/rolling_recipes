@@ -101,15 +101,33 @@ def add_suggestion():
     if not data or not data.get('nome') or not data.get('ingredientes') or not data.get('instrucoes'):
         return jsonify({"error": "Os campos Nome, Ingredientes e Instruções são obrigatórios."}), 400
 
+    def clean_and_split_text(text_block):
+        """
+        Processa um bloco de texto (ingredientes ou instruções) de forma inteligente.
+        1. Divide o texto por novas linhas.
+        2. Para cada linha, remove marcadores de lista comuns (ex: "1.", "-", "*").
+        3. Limpa espaços em branco no início e no fim.
+        4. Filtra quaisquer linhas que fiquem vazias.
+        """
+        if not text_block:
+            return []
+        
+        cleaned_items = []
+        for line in text_block.split('\n'):
+            # Remove marcadores como "1. ", "- ", "* " do início da linha
+            cleaned_line = re.sub(r'^\s*(\d+\.|\-|\*)\s*', '', line).strip()
+            if cleaned_line: # Adiciona à lista apenas se não estiver vazio
+                cleaned_items.append(cleaned_line)
+        return cleaned_items
+
     # Cria o documento para ser inserido na base de dados
     suggestion_doc = {
         "nome": data.get('nome'),
         "categoria": data.get('categoria'),
         "dificuldade": data.get('dificuldade'),
         "tempo_preparo": data.get('tempo_preparo'),
-        # Otimização: divide por vírgula ou quebra de linha, remove espaços e itens vazios.
-        "ingredientes": [item.strip() for item in re.split(r'[,\n]+', data.get('ingredientes')) if item.strip()],
-        "instrucoes": [item.strip() for item in re.split(r'[,\n]+', data.get('instrucoes')) if item.strip()],
+        "ingredientes": clean_and_split_text(data.get('ingredientes')),
+        "instrucoes": clean_and_split_text(data.get('instrucoes')),
         "link_receita": data.get('link_receita', ''), # Campo opcional
         "sugerido_por": current_user.username, # Guarda quem sugeriu
         "status": "pendente" # Status inicial

@@ -54,12 +54,14 @@ def get_recipes():
             ],
             "instrucoes": [
                 "Coza o pato numa panela com água, a cebola cortada em quartos, os alhos, o louro, o chouriço inteiro e o presunto. Tempere com sal e pimenta.",
+                "Numa panela, coza o pato em água com a cebola, os alhos, o louro, o chouriço e o presunto. Tempere com sal e pimenta.",
                 "Quando o pato estiver bem cozido e macio, retire-o juntamente com o chouriço e o presunto. Coe o caldo da cozedura e reserve.",
                 "Desfie a carne do pato, corte o chouriço cozido em rodelas e o presunto em pedaços.",
                 "Meça o volume do arroz e utilize o dobro do volume em caldo da cozedura do pato para o cozer.",
                 "Num tacho, faça um refogado ligeiro com um fio de azeite e um pouco de cebola picada (opcional). Adicione o arroz, deixe fritar um pouco e junte o caldo a ferver.",
                 "Quando o arroz estiver quase seco, junte o pato desfiado e metade do chouriço e presunto. Envolva bem.",
                 "Transfira o arroz para um tabuleiro de ir ao forno, decore a superfície com as restantes rodelas de chouriço.",
+                "Transfira o arroz para um tabuleiro de forno e decore a superfície com as restantes rodelas de chouriço.",
                 "Leve ao forno pré-aquecido a 200°C para tostar por cima, cerca de 10-15 minutos."
             ]
         },
@@ -103,19 +105,31 @@ def get_recipes():
                 "1 cebola pequena",
                 "1 dente de alho",
                 "Azeite, 1 folha de louro",
+                "1 cebola pequena picada",
+                "1 dente de alho picado",
+                "Azeite",
+                "1 folha de louro",
                 "1 cerveja (33cl)",
                 "50ml de vinho do Porto",
                 "200ml de polpa de tomate",
                 "1 cubo de caldo de carne",
                 "Piri-piri a gosto"
+                "Piri-piri a gosto",
+                "Ovo estrelado (opcional)",
+                "Batatas fritas para acompanhar"
             ],
             "instrucoes": [
                 "Molho: Refogue a cebola e o alho picados em azeite com o louro. Junte a polpa de tomate, a cerveja, o vinho do Porto, o caldo de carne e o piri-piri. Deixe ferver em lume brando por 20-30 minutos. Passe o molho com a varinha mágica e retifique o sal.",
+                "Molho: Refogue a cebola e o alho em azeite com o louro.",
+                "Molho: Junte a polpa de tomate, a cerveja, o vinho do Porto, o caldo de carne e o piri-piri.",
+                "Molho: Deixe ferver em lume brando por 20-30 minutos e depois passe com a varinha mágica. Retifique o sal.",
                 "Grelhe o bife, a linguiça e a salsicha fresca.",
                 "Monte a sanduíche: torre ligeiramente uma fatia de pão, coloque o bife, a linguiça e a salsicha abertas ao meio, e o fiambre. Tape com a outra fatia de pão.",
                 "Cubra toda a sanduíche com as fatias de queijo.",
                 "Leve a gratinar ao forno até o queijo derreter.",
                 "Retire do forno, regue abundantemente com o molho bem quente. Sirva com um ovo estrelado por cima (opcional) e batatas fritas."
+                "Retire do forno, regue abundantemente com o molho bem quente.",
+                "Sirva com um ovo estrelado por cima (opcional) e batatas fritas."
             ]
         },
         {
@@ -182,14 +196,22 @@ def get_recipes():
                 "1 morcela",
                 "1 cebola grande",
                 "2 dentes de alho",
+                "1 cebola grande picada",
+                "2 dentes de alho picados",
                 "1 folha de louro",
                 "Azeite, sal, pimenta, polpa de tomate",
                 "Couve lombarda ou portuguesa"
+                "Azeite",
+                "Polpa de tomate a gosto",
+                "Sal e pimenta a gosto",
+                "Couve lombarda ou portuguesa cortada"
             ],
             "instrucoes": [
                 "Demolhe o feijão e as carnes salgadas de véspera.",
+                "De véspera, demolhe o feijão e as carnes salgadas em recipientes separados.",
                 "Coza o feijão em água. Em panelas separadas, coza as carnes.",
                 "Faça um refogado com azeite, cebola picada, alho e a folha de louro. Adicione um pouco de polpa de tomate.",
+                "Faça um refogado com azeite, cebola, alho e louro. Adicione um pouco de polpa de tomate.",
                 "Junte ao refogado as carnes cozidas e cortadas em pedaços e os enchidos em rodelas. Deixe apurar um pouco.",
                 "Adicione o feijão cozido com um pouco da sua água de cozedura.",
                 "Acrescente a couve cortada em pedaços e deixe cozinhar até estar tenra.",
@@ -209,12 +231,21 @@ def get_recipes():
                 "2 dentes de alho",
                 "1 pimento vermelho",
                 "2 tomates maduros",
+                "1 cebola grande em rodelas",
+                "2 dentes de alho picados",
+                "1 pimento vermelho em tiras",
+                "2 tomates maduros (sem pele e sementes) em pedaços",
                 "100ml de vinho branco",
                 "Azeite, sal, pimenta, coentros"
+                "Azeite a gosto",
+                "Sal e pimenta a gosto",
+                "Coentros picados"
             ],
             "instrucoes": [
                 "Na base da cataplana (ou num tacho largo), faça um refogado com azeite, a cebola em rodelas, os alhos picados e o pimento em tiras.",
                 "Quando a cebola estiver macia, adicione o tomate em pedaços, sem pele nem sementes.",
+                "Numa cataplana (ou tacho largo), refogue em azeite a cebola, os alhos e o pimento.",
+                "Quando a cebola estiver macia, adicione o tomate e deixe cozinhar um pouco.",
                 "Disponha as postas de peixe sobre o refogado, seguidas do camarão e das amêijoas.",
                 "Tempere com sal e pimenta, regue com o vinho branco e polvilhe com coentros picados.",
                 "Feche a cataplana e leve a lume brando por cerca de 15-20 minutos, até o peixe estar cozido e as amêijoas abertas.",
@@ -236,6 +267,7 @@ def get_recipes():
             ],
             "instrucoes": [
                 "Coza o polvo numa panela com água a ferver (sem sal) e uma cebola inteira com casca, até estar tenro (cerca de 40-60 minutos).",
+                "Coza o polvo em água a ferver (sem sal) com uma cebola inteira, até estar tenro (40-60 min).",
                 "Lave bem as batatas e coza-as com a pele em água e sal. Depois de cozidas, escorra-as e dê um 'murro' em cada uma para as abrir ligeiramente.",
                 "Coloque o polvo cozido e as batatas num tabuleiro de ir ao forno.",
                 "Esmague os dentes de alho com casca e espalhe-os pelo tabuleiro.",
