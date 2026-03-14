@@ -19,7 +19,4 @@ class User(UserMixin):
     # O Flask-Login já implementa os métodos necessários através do UserMixin:
     # - is_authenticated: retorna True se o utilizador estiver autenticado.
     # - is_active: retorna True se a conta do utilizador estiver ativa.
-    # - is_anonymous: retorna False para utilizadores reais.
-    # - get_id(): retorna o ID do utilizador (em formato string).
-
-    # Não é necessário mais nada para uma implementação básica.
+    

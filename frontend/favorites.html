@@ -25,43 +25,55 @@
 <h1 class="mb-4 text-center">Minhas Receitas Favoritas</h1>
 <div id="favorites-list">
     {% if recipes and recipes|length > 0 %}
-        <div class="row">
-            <!-- Limita a largura da lista em ecrãs médios e grandes -->
-            <div class="col-12 col-md-10 offset-md-1 col-lg-8 offset-lg-2">
-                <ul class="list-group">
-                    {% for recipe in recipes %}
-                    <!-- Caixa horizontal clicável para cada receita -->
-                    <li class="list-group-item d-flex align-items-center p-2 mb-3 shadow-sm recipe-card clickable" id="recipe-item-{{ recipe._id }}" data-id="{{ recipe._id }}">
-                        
-                        <!-- 1. Logo pequeno à esquerda com estilo direto (inline) -->
-                        <img src="{{ url_for('static', filename='images/logo.png') }}" 
-                             alt="Logo"
-                             class="me-3"
-                             style="width: 45px; height: 45px; object-fit: contain; flex-shrink: 0;">
-                        
-                        <!-- 2. Nome da receita (com tooltip para nomes compridos) -->
-                        <span class="fw-bold recipe-name" title="{{ recipe.nome }}">{{ recipe.nome }}</span>
-                        
-                        <!-- 3. Botões à direita com espaçamento -->
-                        <div class="d-flex gap-2">
-                            <!-- Botão "Ver" mais comprido e com efeito de realce -->
-                            <button class="btn btn-warning view-recipe-btn px-4" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#recipeModal" 
-                                    data-id="{{ recipe._id }}">
-                                Ver</button>
-                            <!-- Botão "Remover" com tamanho consistente -->
-                            <button class="btn btn-outline-danger remove-favorite-list-btn" 
-                                    data-id="{{ recipe._id }}" 
-                                    title="Remover">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16"><path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5-.03a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5"/></svg>
-                            </button>
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
+        <!-- 1. Formulário que envolve a lista de receitas -->
+        <form method="POST" action="{{ url_for('shopping_list') }}">
+            <div class="row">
+                <!-- Limita a largura da lista em ecrãs médios e grandes -->
+                <div class="col-12 col-md-10 offset-md-1 col-lg-8 offset-lg-2">
+                    <ul class="list-group">
+                        {% for recipe in recipes %}
+                        <!-- Caixa horizontal para cada receita -->
+                        <li class="list-group-item d-flex align-items-center p-2 mb-3 shadow-sm recipe-card" id="recipe-item-{{ recipe._id }}">
+                            
+                            <!-- 2. Checkbox para seleção -->
+                            <div class="form-check me-3">
+                                <input class="form-check-input" type="checkbox" name="receitas_selecionadas" value="{{ recipe._id }}" id="check-{{ recipe._id }}" style="transform: scale(1.5);">
+                            </div>
+
+                            <!-- Logo pequeno -->
+                            <img src="{{ url_for('static', filename='images/logo.png') }}" 
+                                 alt="Logo"
+                                 class="me-3 clickable"
+                                 data-id="{{ recipe._id }}"
+                                 style="width: 45px; height: 45px; object-fit: contain; flex-shrink: 0;">
+                            
+                            <!-- Nome da receita (clicável para abrir o modal) -->
+                            <span class="fw-bold recipe-name clickable" title="{{ recipe.nome }}" data-id="{{ recipe._id }}">{{ recipe.nome }}</span>
+                            
+                            <!-- Botões à direita -->
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-warning view-recipe-btn px-4" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#recipeModal" 
+                                        data-id="{{ recipe._id }}">
+                                    Ver</button>
+                                <button type="button" class="btn btn-outline-danger remove-favorite-list-btn" 
+                                        data-id="{{ recipe._id }}" 
+                                        title="Remover">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16"><path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3.5-.03a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5.5a.5.5 0 0 0-.5-.5"/></svg>
+                                </button>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <!-- 3. Botão de submissão do formulário -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-warning btn-lg">Gerar Lista de Compras</button>
+                    </div>
+                </div>
             </div>
-        </div>
+        </form>
     {% else %}
         <p class="lead" id="no-favorites-message">Você ainda não guardou nenhuma receita. Volte à página inicial e encontre uma que goste!</p>
     {% endif %}

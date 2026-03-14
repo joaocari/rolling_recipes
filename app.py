@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, jsonify, render_template, request
+import threading, time, requests, os
+from flask import Flask, jsonify, render_template, request, flash, redirect, url_for
 from flask_pymongo import PyMongo
 from flask_login import LoginManager, login_required, current_user
 from bson import ObjectId
@@ -10,12 +11,27 @@ import os, re
 # Importa o Blueprint de autenticação
 from auth import auth_bp
 from models import User
+from utils import gerar_lista_compras
 
 # Cria a aplicação Flask
 # O Flask procura automaticamente uma pasta chamada 'static' no mesmo nível.
 # Apenas precisamos de especificar que a pasta de templates se chama 'frontend'.
 app = Flask(__name__,
             template_folder='frontend')
+
+def _keep_alive_logic():
+    while True:
+        try:
+            requests.get('https://rollingrecipes.onrender.com/health', timeout=10)
+        except Exception:
+            pass
+        time.sleep(600) # 10 minutos
+
+threading.Thread(target=_keep_alive_logic, daemon=True).start()
+
+@app.route('/health')
+def health():
+    return 'ok', 200
 
 # Chave secreta para a gestão de sessões (necessária para o Flask-Login)
 # É recomendado usar uma variável de ambiente para a chave secreta em produção
@@ -81,6 +97,42 @@ def favorites():
     #    quanto a string JSON (para o script JavaScript que abre o modal) para o template.
     return render_template('favorites.html', recipes=favorite_recipes, recipes_json=recipes_json_string)
 
+# Rota para a página da lista de compras
+@app.route('/lista-compras', methods=['GET', 'POST'])
+@login_required # Garante que apenas utilizadores autenticados podem aceder
+def shopping_list():
+    """
+    Gera e exibe uma lista de compras consolidada com base nas receitas
+    selecionadas pelo utilizador.
+    """
+    if request.method == 'POST':
+        # Se o pedido for POST, obtém os IDs dos checkboxes selecionados no formulário
+        selected_ids_str = request.form.getlist('receitas_selecionadas')
+
+        # 5. Se nenhuma receita for selecionada, redireciona de volta com uma mensagem
+        if not selected_ids_str:
+            flash("Selecione pelo menos uma receita para gerar a lista de compras.", "warning")
+            return redirect(url_for('favorites'))
+
+        # Converte os IDs de string para ObjectId
+        selected_ids_obj = [ObjectId(id_str) for id_str in selected_ids_str]
+
+        # Busca os documentos completos apenas das receitas selecionadas
+        receitas_selecionadas = list(mongo.db.receitas.find({
+            "_id": {"$in": selected_ids_obj}
+        }))
+    else:
+        # Se a página for acedida via GET, mostra uma lista vazia.
+        receitas_selecionadas = []
+
+    # Chama a função para gerar a lista de compras consolidada
+    itens_lista_compras = gerar_lista_compras(receitas_selecionadas)
+
+    return render_template('lista_compras.html',
+                           itens=itens_lista_compras,
+                           total_itens=len(itens_lista_compras),
+                           num_receitas=len(receitas_selecionadas),
+                           receitas=receitas_selecionadas)
 
 # Rota para a página de sugestões de receitas
 @app.route('/suggestions')

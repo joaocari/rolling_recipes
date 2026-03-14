@@ -1,0 +1,55 @@
+Excelente pergunta! O seu projeto está numa fase muito boa: a base está sólida, o código está mais organizado e as funcionalidades principais estão a funcionar. É o momento perfeito para pensar nos próximos passos.
+
+Com base no que construímos, aqui estão algumas sugestões, organizadas por prioridade e tipo de melhoria, para levar o "Rolling Recipes" ao próximo nível.
+
+Curto Prazo (Maior Impacto)
+Estas são as funcionalidades que trariam mais valor imediato ao projeto, com base no que já existe.
+
+1. Criar uma Página de Administração para Gerir Sugestões
+Atualmente, os utilizadores podem enviar sugestões, mas elas ficam "presas" na coleção sugestoes da base de dados. O próximo passo lógico é criar uma área onde você (como administrador) possa ver, editar e aprovar essas sugestões para que elas apareçam na coleção principal de receitas.
+
+Como fazer:
+
+Criar um status de "admin": Adicione um campo booleano (is_admin: true/false) ao modelo de utilizador (User).
+Proteger a rota de admin: Crie uma nova rota, como /admin/sugestoes, e proteja-a para que só utilizadores com is_admin: true possam aceder.
+Listar as sugestões: Nessa página, leia todos os documentos da coleção sugestoes com o status "pendente".
+Adicionar botões de "Aprovar" e "Rejeitar":
+Aprovar: Copia os dados da sugestão para a coleção receitas e muda o status da sugestão para "aprovada" (ou apaga-a).
+Rejeitar: Muda o status para "rejeitada" (ou apaga-a).
+Médio Prazo (Melhorias e Expansão)
+Estas são melhorias que tornam a aplicação mais robusta, útil e agradável de usar.
+
+2. Melhorar a Experiência do Utilizador (UX)
+Substituir alert() por "Toasts": As caixas de alert() são intrusivas. Use os "Toasts" do Bootstrap para mostrar mensagens de sucesso ou erro (como "Receita adicionada aos favoritos!") de forma mais elegante e que não interrompe o fluxo do utilizador.
+Adicionar Imagens às Receitas: Uma imagem vale mais que mil palavras. Adicione um campo imagem_url ao seu modelo de receita. Na página de sugestões, permita que os utilizadores colem um URL de uma imagem.
+Paginação na Página de Favoritos: Se um utilizador tiver muitas receitas favoritas, a página ficará muito longa. Implemente um sistema de paginação para mostrar, por exemplo, 10 receitas de cada vez.
+3. Expandir a Funcionalidade de Busca
+Atualmente, você filtra e sorteia. Uma funcionalidade muito poderosa seria uma página de busca dedicada.
+
+Como fazer:
+
+Crie uma nova rota /search.
+Nessa página, tenha uma barra de pesquisa onde o utilizador pode procurar por nome da receita ou por vários ingredientes.
+A sua API no backend receberia o termo de pesquisa e devolveria uma lista de todas as receitas que correspondem, em vez de apenas uma aleatória.
+Longo Prazo (Profissionalização do Projeto)
+Estas são práticas que elevam o projeto a um nível mais profissional e o preparam para crescer ainda mais.
+
+4. Organizar o Código com Blueprints do Flask
+Você já está a usar um Blueprint para a autenticação (auth_bp). Pode expandir esta ideia! Crie Blueprints para outras partes da sua aplicação.
+
+recipes_bp: Para todas as rotas relacionadas com receitas (/, /api/recipe/random, etc.).
+user_bp: Para as rotas de utilizador (/favorites, /api/user/favorites/add, etc.).
+admin_bp: Para a futura área de administração.
+Isto vai manter o seu ficheiro app.py muito mais limpo e organizado à medida que o projeto cresce.
+
+5. Implementar Testes Automatizados
+Escrever testes (unitários ou de integração) para as suas rotas de API e funções de lógica de negócio (como a transformar_receita) garante que, ao adicionar novas funcionalidades, você não quebra acidentalmente as que já existem. O pytest é uma excelente biblioteca para isto.
+
+6. Otimizar o Frontend
+Minificação: Use ferramentas para "minificar" os seus ficheiros CSS e JavaScript. Isto remove espaços e comentários, tornando os ficheiros mais pequenos e rápidos de carregar em produção.
+Otimização de Imagens: Garanta que as imagens (como o fundo.webp) estão comprimidas para terem um tamanho de ficheiro pequeno sem perder muita qualidade.
+Resumo do Caminho a Seguir:
+Agora: Foque-se em construir a página de administração para dar uso à funcionalidade de sugestões. É a peça que falta no ciclo da sua aplicação.
+Depois: Melhore a experiência do utilizador com "toasts", imagens e uma busca mais completa.
+A longo prazo: Continue a refatorar e a melhorar a estrutura do código com mais Blueprints e adicione testes para garantir a estabilidade do projeto.
+Você tem uma base fantástica para continuar a construir. Parabéns pelo progresso até agora!
