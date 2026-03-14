@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Compras - Rolling Recipes{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <style>
+        .shopping-item {
+            transition: background-color 0.3s ease, opacity 0.3s ease;
+        }
+        .shopping-item.checked {
+            background-color: #f8f9fa; /* Cinza claro */
+            opacity: 0.7;
+        }
+        .shopping-item.checked .item-name {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+        .item-quantity {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--bs-warning); /* Laranja do Bootstrap */
+        }
+        .item-unit {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+        .form-check-input:checked {
+            background-color: var(--bs-warning);
+            border-color: var(--bs-warning);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1 class="display-5">🛒 Lista de Compras</h1>
+        <!-- 1. Frase dinâmica com o número de receitas -->
+        {% if num_receitas > 0 %}
+            <p class="lead text-muted">Gerada a partir de {{ num_receitas }} receita(s) selecionada(s).</p>
+            <!-- 2. Lista com os nomes das receitas usadas -->
+            <div class="text-muted small">
+                {% for r in receitas %}
+                    <span class="mx-2">• {{ r.nome }}</span>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="lead text-muted">Selecione receitas na página de favoritos para gerar a sua lista.</p>
+        {% endif %}
+    </div>
+
+    {% if total_itens > 0 %}
+        <!-- Barra de Filtro -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-8 col-lg-6">
+                <input type="text" id="filter-input" class="form-control" placeholder="Filtrar ingredientes...">
+            </div>
+        </div>
+
+        <!-- Lista de Itens -->
+        <div id="shopping-list" class="row g-3 justify-content-center">
+            {% for item in itens %}
+            <div class="col-12 col-md-6 col-lg-4 shopping-item-wrapper">
+                <div class="card h-100 shadow-sm shopping-item" data-item-name="{{ item.nome|lower }}">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <!-- 3. Formato de exibição dos ingredientes ajustado -->
+                            {% if item.quantidade > 0 %}
+                                <div class="d-flex align-items-baseline">
+                                    <span class="item-quantity">{{ item.quantidade | string | replace('.0', '') }}</span>
+                                    <span class="item-unit ms-2">{{ item.unidade }}</span>
+                                </div>
+                                <h5 class="card-title item-name mt-1 mb-0">{{ item.nome }}</h5>
+                            {% else %}
+                                <!-- Caso a quantidade seja 0, mostra "a gosto" -->
+                                <h5 class="card-title item-name mt-1 mb-0">{{ item.nome }} <span class="text-muted fw-normal">(a gosto)</span></h5>
+                            {% endif %}
+                        </div>
+                        <div class="form-check form-switch ms-3">
+                            <input class="form-check-input" type="checkbox" role="switch" style="transform: scale(1.5);">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Rodapé com Ações -->
+        <footer class="text-center mt-5 pt-4 border-top">
+            <div class="d-flex justify-content-center flex-wrap gap-2">
+                <!-- 4. Botão para voltar aos favoritos -->
+                <a href="{{ url_for('favorites') }}" class="btn btn-outline-secondary">← Voltar às receitas favoritas</a>
+                <button id="share-btn" class="btn btn-outline-primary">Partilhar Lista</button>
+                <button id="clear-checked-btn" class="btn btn-outline-danger">Limpar Marcados</button>
+            </div>
+        </footer>
+
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            A sua lista de compras está vazia. Adicione receitas aos seus <a href="{{ url_for('favorites') }}" class="alert-link">favoritos</a> para começar!
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Voltar à Página Inicial</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const listId = 'shoppingListState'; // Chave para o localStorage
+    const items = document.querySelectorAll('.shopping-item');
+    const filterInput = document.getElementById('filter-input');
+    const shareBtn = document.getElementById('share-btn');
+    const clearCheckedBtn = document.getElementById('clear-checked-btn');
+
+    // Carrega o estado dos checkboxes do localStorage
+    function loadState() {
+        const savedState = JSON.parse(localStorage.getItem(listId)) || {};
+        items.forEach(item => {
+            const itemName = item.dataset.itemName;
+            const checkbox = item.querySelector('.form-check-input');
+            if (savedState[itemName]) {
+                checkbox.checked = true;
+                item.classList.add('checked');
+            }
+        });
+    }
+
+    // Guarda o estado no localStorage
+    function saveState() {
+        const state = {};
+        items.forEach(item => {
+            const itemName = item.dataset.itemName;
+            const checkbox = item.querySelector('.form-check-input');
+            if (checkbox.checked) {
+                state[itemName] = true;
+            }
+        });
+        localStorage.setItem(listId, JSON.stringify(state));
+    }
+
+    // Adiciona evento a cada item para marcar/desmarcar
+    items.forEach(item => {
+        const checkbox = item.querySelector('.form-check-input');
+        checkbox.addEventListener('change', () => {
+            item.classList.toggle('checked', checkbox.checked);
+            saveState();
+        });
+    });
+
+    // Funcionalidade de Filtro
+    if (filterInput) {
+        filterInput.addEventListener('input', (e) => {
+            const filterText = e.target.value.toLowerCase();
+            document.querySelectorAll('.shopping-item-wrapper').forEach(wrapper => {
+                const itemName = wrapper.querySelector('.shopping-item').dataset.itemName;
+                if (itemName.includes(filterText)) {
+                    wrapper.style.display = '';
+                } else {
+                    wrapper.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Funcionalidade de Partilhar
+    if (shareBtn) {
+        shareBtn.addEventListener('click', () => {
+            let listText = '🛒 Lista de Compras (Rolling Recipes):\n\n';
+            document.querySelectorAll('.shopping-item:not(.checked)').forEach(item => {
+                const quantity = item.querySelector('.item-quantity').textContent.trim();
+                const unit = item.querySelector('.item-unit').textContent.trim();
+                const name = item.querySelector('.item-name').textContent.trim();
+                listText += `- ${quantity} ${unit} ${name}\n`;
+            });
+
+            navigator.clipboard.writeText(listText)
+                .then(() => alert('Lista de compras copiada para a área de transferência!'))
+                .catch(() => alert('Erro ao copiar a lista.'));
+        });
+    }
+
+    // Funcionalidade de Limpar Marcados
+    if (clearCheckedBtn) {
+        clearCheckedBtn.addEventListener('click', () => {
+            const checkedItems = document.querySelectorAll('.shopping-item.checked');
+            if (checkedItems.length === 0) {
+                alert('Nenhum item marcado para limpar.');
+                return;
+            }
+            if (confirm(`Tem a certeza que deseja remover ${checkedItems.length} item(ns) da lista?`)) {
+                checkedItems.forEach(item => {
+                    // Remove o elemento pai (a coluna do grid)
+                    item.closest('.shopping-item-wrapper').remove();
+                });
+                // Atualiza o estado para remover os itens que já não existem
+                saveState();
+            }
+        });
+    }
+
+    // Carrega o estado inicial quando a página é carregada
+    loadState();
+});
+</script>
+{% endblock %}
